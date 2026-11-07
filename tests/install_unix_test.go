@@ -1,4 +1,4 @@
-//go:build linux
+//go:build linux || darwin
 
 package tests
 
@@ -26,9 +26,9 @@ func fixture(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := "siaas-cli_0.1.0_linux_" + runtime.GOARCH
+	name := "siaas-cli_0.1.0_" + runtime.GOOS + "_" + runtime.GOARCH
 	write(t, filepath.Join(dir, name), data, 0755)
-	manifest := fmt.Sprintf("siaas-cli-release-v1 0.1.0\nlinux %s %s %x %d\n", runtime.GOARCH, name, sha256.Sum256(data), len(data))
+	manifest := fmt.Sprintf("siaas-cli-release-v1 0.1.0\n%s %s %s %x %d\n", runtime.GOOS, runtime.GOARCH, name, sha256.Sum256(data), len(data))
 	write(t, filepath.Join(dir, "cli-release-v1.txt"), []byte(manifest), 0600)
 	return dir, name
 }
@@ -129,13 +129,21 @@ func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
 			case "wrong version":
 				write(t, meta, []byte(strings.Replace(text, "0.1.0", "../escape", 1)), 0600)
 			case "missing platform":
-				write(t, meta, []byte(strings.ReplaceAll(text, "linux", "darwin")), 0600)
+				other := "linux"
+				if runtime.GOOS == other {
+					other = "darwin"
+				}
+				write(t, meta, []byte(strings.ReplaceAll(text, runtime.GOOS, other)), 0600)
 				want = 7
 			case "duplicate platform":
 				write(t, meta, []byte(text+strings.Split(text, "\n")[1]+"\n"), 0600)
 				want = 7
 			case "duplicate other platform":
-				row := strings.ReplaceAll(strings.Split(text, "\n")[1], "linux", "darwin")
+				other := "linux"
+				if runtime.GOOS == other {
+					other = "darwin"
+				}
+				row := strings.ReplaceAll(strings.Split(text, "\n")[1], runtime.GOOS, other)
 				write(t, meta, []byte(text+row+"\n"+row+"\n"), 0600)
 				want = 7
 			case "traversal":

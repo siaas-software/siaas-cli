@@ -70,7 +70,9 @@ only, not a product client or a dependency on the Personal repository.
 Use the Go version in [.go-version](.go-version), currently **1.27.3**. There are
 no third-party Go modules and no package installation step. Bash and standard
 Unix utilities are needed for Unix installer tests. Windows installer tests use
-Windows PowerShell 5.1+ on Windows. No Actions workflow is added or enabled.
+Windows PowerShell 5.1 on Windows. The owner-authorized
+[native acceptance workflow](docs/native-acceptance.md) uses only free standard
+GitHub-hosted runners in this public repository, without artifact uploads or caching.
 
 From the repository root on Unix:
 
@@ -97,13 +99,14 @@ go run ./tools/build
 ```
 
 Tests use temporary directories, a built CLI executable and local release fixtures.
-Linux tests inject fake `uname`, `curl` and a rename barrier; they never contact
+Unix tests inject fake `uname`, `curl` and a rename barrier; they never contact
 external services. They cover parsing/output/exits, standalone execution with an
 empty PATH, artifact integrity, missing metadata/artifacts, unsupported platforms,
 path safety, Unicode/spaces, repeat installs, backups, locking, SIGTERM/SIGKILL
 interruption and secret redaction. Native Windows tests are selected only on
 Windows; a Linux test pass does not include those tests. The Unix installer suite
-currently runs on Linux, not macOS.
+now runs on both Linux and macOS. Windows checks require PowerShell 5.1 Desktop
+and exercise exclusive file locks and running executable replacement.
 
 ## Standalone executable generation
 

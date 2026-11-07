@@ -3,6 +3,8 @@
 package tests
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -15,6 +17,98 @@ import (
 	"testing"
 	"time"
 )
+
+func TestWindowsPowerShell51(t *testing.T) {
+	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", `$v=$PSVersionTable.PSVersion; if ($v.Major -ne 5 -or $v.Minor -ne 1 -or $PSVersionTable.PSEdition -ne 'Desktop') { exit 1 }; Write-Output ('Windows PowerShell '+$v.ToString()+' '+$PSVersionTable.PSEdition)`)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("PowerShell 5.1 required: %s %v", out, err)
+	}
+	t.Log(strings.TrimSpace(string(out)))
+}
+
+func TestWindowsRunningExecutableReplacement(t *testing.T) {
+	source, _ := winFixture(t)
+	dir := filepath.Join(t.TempDir(), "Running CLI space")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(dir, "siaas.exe")
+	helper := filepath.Join(t.TempDir(), "main.go")
+	winWrite(t, helper, []byte("package main\nimport(\"fmt\";\"os\")\nfunc main(){fmt.Println(\"ready\"); var b [1]byte; os.Stdin.Read(b[:])}\n"))
+	build := exec.Command(filepath.Join(runtime.GOROOT(), "bin", "go.exe"), "build", "-o", target, helper)
+	build.Env = append(os.Environ(), "CGO_ENABLED=0", "GOTOOLCHAIN=local", "GOPROXY=off", "GOSUMDB=off")
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("running-image fixture: %s %v", out, err)
+	}
+	old, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	process := exec.CommandContext(ctx, target)
+	input, err := process.StdinPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	output, err := process.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = process.Start(); err != nil {
+		t.Fatal(err)
+	}
+	waited := false
+	defer func() {
+		if !waited {
+			_ = process.Process.Kill()
+			_ = process.Wait()
+		}
+	}()
+	line, err := bufio.NewReader(output).ReadString('\n')
+	if err != nil || strings.TrimSpace(line) != "ready" {
+		t.Fatalf("running-image barrier: %q %v", line, err)
+	}
+	code, out := winInstall(t, dir, source)
+	t.Logf("Running executable replacement exit=%d: %s", code, strings.TrimSpace(out))
+	if code != 0 && code != 6 {
+		t.Fatalf("unexpected running-image result: %d %s", code, out)
+	}
+	if code == 6 {
+		current, err := os.ReadFile(target)
+		if err != nil || !bytes.Equal(current, old) {
+			t.Fatal("failed running-image replacement changed old bytes")
+		}
+	}
+	_ = input.Close()
+	if err = process.Wait(); err != nil {
+		t.Fatal(err)
+	}
+	waited = true
+	if code, out = winInstall(t, dir, source); code != 0 {
+		t.Fatalf("retry after process exit: %d %s", code, out)
+	}
+	want, err := os.ReadFile(binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	current, err := os.ReadFile(target)
+	if err != nil || !bytes.Equal(current, want) {
+		t.Fatal("retry did not install verified CLI")
+	}
+	backups, _ := filepath.Glob(filepath.Join(dir, "siaas.exe.backup.*"))
+	retained := false
+	for _, backup := range backups {
+		b, err := os.ReadFile(backup)
+		if err == nil && bytes.Equal(b, old) {
+			retained = true
+		}
+	}
+	if !retained {
+		t.Fatal("previous running executable not retained for recovery")
+	}
+}
 
 // These tests run only on a genuine Windows host. Cross-compilation is not a pass.
 func winFixture(t *testing.T) (string, string) {
@@ -91,7 +185,7 @@ func winInstall(t *testing.T, dir, source string, args ...string) (int, string) 
 	if err != nil {
 		t.Fatal("Windows PowerShell 5.1 required for native installer acceptance")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	all := []string{"-NoProfile", "-NonInteractive", "-File", filepath.Join(root, "install.ps1"), "-InstallDir", dir, "-FromDir", source}
 	all = append(all, args...)
@@ -117,6 +211,11 @@ func TestWindowsBootstrap(t *testing.T) {
 	if code, out := winInstall(t, dir, source); code != 0 {
 		t.Fatalf("install %d %s", code, out)
 	}
+	installed := exec.Command(filepath.Join(dir, "siaas.exe"), "--version", "--json")
+	installed.Env = []string{"PATH=" + filepath.Join(dir, "empty"), "SystemRoot=" + os.Getenv("SystemRoot")}
+	if out, err := installed.CombinedOutput(); err != nil || !strings.Contains(string(out), `"version":"0.1.0"`) {
+		t.Fatalf("installed standalone CLI: %s %v", out, err)
+	}
 	if code, out := winInstall(t, dir, source); code != 0 || !strings.Contains(out, "already installed") {
 		t.Fatalf("repeat %d %s", code, out)
 	}
@@ -141,7 +240,7 @@ func TestWindowsBootstrap(t *testing.T) {
 	}
 }
 func TestWindowsInstallerFailures(t *testing.T) {
-	for _, kind := range []string{"corrupt", "missing artifact", "missing metadata", "bad schema", "unsafe filename", "missing platform", "duplicate platform", "stale lock", "unsafe path", "secret argument"} {
+	for _, kind := range []string{"corrupt", "truncated", "oversized", "missing artifact", "missing metadata", "bad schema", "unsafe filename", "missing platform", "duplicate platform", "stale lock", "unsafe path", "secret argument"} {
 		t.Run(kind, func(t *testing.T) {
 			source, name := winFixture(t)
 			dir := t.TempDir()
@@ -154,7 +253,20 @@ func TestWindowsInstallerFailures(t *testing.T) {
 			var args []string
 			switch kind {
 			case "corrupt":
-				winWrite(t, filepath.Join(source, name), []byte("corrupt"))
+				b, err := os.ReadFile(filepath.Join(source, name))
+				if err != nil {
+					t.Fatal(err)
+				}
+				b[0] ^= 255
+				winWrite(t, filepath.Join(source, name), b)
+			case "truncated":
+				winWrite(t, filepath.Join(source, name), []byte("short"))
+			case "oversized":
+				b, err := os.ReadFile(filepath.Join(source, name))
+				if err != nil {
+					t.Fatal(err)
+				}
+				winWrite(t, filepath.Join(source, name), append(b, 0))
 			case "missing artifact":
 				os.Remove(filepath.Join(source, name))
 				want = 7
