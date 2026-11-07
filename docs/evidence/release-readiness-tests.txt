@@ -1,0 +1,237 @@
+M1 release-readiness validation, 2026-11-07
+Host: Debian 13.6 / Linux 6.18.57 / x86_64; unprivileged uid 1000
+Compiler: Go 1.27.3; PowerShell supplemental checks: 7.6.9/Linux
+GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOTELEMETRY=off GOCACHE=/tmp/siaas-cli-go-cache
+PATH prepended with /tmp/siaas-cli-toolchain/go/bin
+
+$ go test -count=1 -timeout=90s -json ./...
+exit 0
+PASS TestContract/empty
+PASS TestContract/help_flag
+PASS TestContract/help_command
+PASS TestContract/version
+PASS TestContract/unknown
+PASS TestContract/unknown_option
+PASS TestContract/conflict
+PASS TestContract/extra_help
+PASS TestContract/duplicate_JSON
+PASS TestContract/future_install
+PASS TestContract/future_pin
+PASS TestContract/future_help
+PASS TestContract/update
+PASS TestContract/rollback
+PASS TestContract/uninstall
+PASS TestContract/start
+PASS TestContract/stop
+PASS TestContract/restart
+PASS TestContract/status
+PASS TestContract/doctor
+PASS TestContract/list
+PASS TestContract
+PASS TestJSONOrderAndRedaction
+PASS TestOutputFailure
+PASS TestUnixDownloadPolicy/github-assets
+PASS TestUnixDownloadPolicy/legacy-assets
+PASS TestUnixDownloadPolicy/github-relative-resolved-by-curl
+PASS TestUnixDownloadPolicy/explicit-tls-port
+PASS TestUnixDownloadPolicy/arbitrary-host
+PASS TestUnixDownloadPolicy/suffix-spoof
+PASS TestUnixDownloadPolicy/userinfo
+PASS TestUnixDownloadPolicy/credentials
+PASS TestUnixDownloadPolicy/downgrade
+PASS TestUnixDownloadPolicy/file-url
+PASS TestUnixDownloadPolicy/port
+PASS TestUnixDownloadPolicy/fragment
+PASS TestUnixDownloadPolicy/backslash
+PASS TestUnixDownloadPolicy/newline
+PASS TestUnixDownloadPolicy/empty-location
+PASS TestUnixDownloadPolicy/redirect-loop
+PASS TestUnixDownloadPolicy/tls-failure
+PASS TestUnixDownloadPolicy/http-failure
+PASS TestUnixDownloadPolicy/partial-binary
+PASS TestUnixDownloadPolicy/short-binary-success
+PASS TestUnixDownloadPolicy/unexpected-status
+PASS TestUnixDownloadPolicy
+PASS TestUnixInstallRepeatAndReplacement
+PASS TestUnixInstallerFailuresPreserveExisting/corruption
+PASS TestUnixInstallerFailuresPreserveExisting/truncated
+PASS TestUnixInstallerFailuresPreserveExisting/oversized_binary
+PASS TestUnixInstallerFailuresPreserveExisting/oversized_manifest
+PASS TestUnixInstallerFailuresPreserveExisting/missing_binary
+PASS TestUnixInstallerFailuresPreserveExisting/missing_manifest
+PASS TestUnixInstallerFailuresPreserveExisting/wrong_schema
+PASS TestUnixInstallerFailuresPreserveExisting/wrong_version
+PASS TestUnixInstallerFailuresPreserveExisting/missing_platform
+PASS TestUnixInstallerFailuresPreserveExisting/duplicate_platform
+PASS TestUnixInstallerFailuresPreserveExisting/duplicate_other_platform
+PASS TestUnixInstallerFailuresPreserveExisting/traversal
+PASS TestUnixInstallerFailuresPreserveExisting/invalid_hash
+PASS TestUnixInstallerFailuresPreserveExisting/symlink_artifact
+PASS TestUnixInstallerFailuresPreserveExisting
+PASS TestUnixPathSafetyAndRedaction
+PASS TestUnixUnsupportedPlatformAndBusyLock
+PASS TestUnixUnpublishedReleaseUsesTrustedHTTPS
+PASS TestUnixFilesystemErrorRedaction
+PASS TestUnixInterruptedInstall/terminated
+PASS TestUnixInterruptedInstall/killed
+PASS TestUnixInterruptedInstall
+PASS TestStandaloneWithoutRuntime
+PASS TestStandaloneExitCodes
+No failing or skipped test cases. Two packages have no test files.
+
+$ go test -race -count=1 -timeout=90s -json ./...
+exit 0
+PASS TestContract/empty
+PASS TestContract/help_flag
+PASS TestContract/help_command
+PASS TestContract/version
+PASS TestContract/unknown
+PASS TestContract/unknown_option
+PASS TestContract/conflict
+PASS TestContract/extra_help
+PASS TestContract/duplicate_JSON
+PASS TestContract/future_install
+PASS TestContract/future_pin
+PASS TestContract/future_help
+PASS TestContract/update
+PASS TestContract/rollback
+PASS TestContract/uninstall
+PASS TestContract/start
+PASS TestContract/stop
+PASS TestContract/restart
+PASS TestContract/status
+PASS TestContract/doctor
+PASS TestContract/list
+PASS TestContract
+PASS TestJSONOrderAndRedaction
+PASS TestOutputFailure
+PASS TestUnixDownloadPolicy/github-assets
+PASS TestUnixDownloadPolicy/legacy-assets
+PASS TestUnixDownloadPolicy/github-relative-resolved-by-curl
+PASS TestUnixDownloadPolicy/explicit-tls-port
+PASS TestUnixDownloadPolicy/arbitrary-host
+PASS TestUnixDownloadPolicy/suffix-spoof
+PASS TestUnixDownloadPolicy/userinfo
+PASS TestUnixDownloadPolicy/credentials
+PASS TestUnixDownloadPolicy/downgrade
+PASS TestUnixDownloadPolicy/file-url
+PASS TestUnixDownloadPolicy/port
+PASS TestUnixDownloadPolicy/fragment
+PASS TestUnixDownloadPolicy/backslash
+PASS TestUnixDownloadPolicy/newline
+PASS TestUnixDownloadPolicy/empty-location
+PASS TestUnixDownloadPolicy/redirect-loop
+PASS TestUnixDownloadPolicy/tls-failure
+PASS TestUnixDownloadPolicy/http-failure
+PASS TestUnixDownloadPolicy/partial-binary
+PASS TestUnixDownloadPolicy/short-binary-success
+PASS TestUnixDownloadPolicy/unexpected-status
+PASS TestUnixDownloadPolicy
+PASS TestUnixInstallRepeatAndReplacement
+PASS TestUnixInstallerFailuresPreserveExisting/corruption
+PASS TestUnixInstallerFailuresPreserveExisting/truncated
+PASS TestUnixInstallerFailuresPreserveExisting/oversized_binary
+PASS TestUnixInstallerFailuresPreserveExisting/oversized_manifest
+PASS TestUnixInstallerFailuresPreserveExisting/missing_binary
+PASS TestUnixInstallerFailuresPreserveExisting/missing_manifest
+PASS TestUnixInstallerFailuresPreserveExisting/wrong_schema
+PASS TestUnixInstallerFailuresPreserveExisting/wrong_version
+PASS TestUnixInstallerFailuresPreserveExisting/missing_platform
+PASS TestUnixInstallerFailuresPreserveExisting/duplicate_platform
+PASS TestUnixInstallerFailuresPreserveExisting/duplicate_other_platform
+PASS TestUnixInstallerFailuresPreserveExisting/traversal
+PASS TestUnixInstallerFailuresPreserveExisting/invalid_hash
+PASS TestUnixInstallerFailuresPreserveExisting/symlink_artifact
+PASS TestUnixInstallerFailuresPreserveExisting
+PASS TestUnixPathSafetyAndRedaction
+PASS TestUnixUnsupportedPlatformAndBusyLock
+PASS TestUnixUnpublishedReleaseUsesTrustedHTTPS
+PASS TestUnixFilesystemErrorRedaction
+PASS TestUnixInterruptedInstall/terminated
+PASS TestUnixInterruptedInstall/killed
+PASS TestUnixInterruptedInstall
+PASS TestStandaloneWithoutRuntime
+PASS TestStandaloneExitCodes
+No failing or skipped test cases. Two packages have no test files.
+
+$ go vet ./...
+exit 0
+
+$ bash -n install.sh tools/prepare-release.sh
+exit 0
+
+$ test -z "$(gofmt -l cmd internal tools tests)"
+exit 0
+
+$ git diff --check
+exit 0
+
+$ go run ./tools/build -targets linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64 -out dist/readiness-cross
+exit 0
+
+$ GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go test -c -o dist/readiness-windows-tests.exe ./tests
+exit 0
+
+$ bash tools/prepare-release.sh dist/v0.1.0
+exit 0
+
+$ bash tools/prepare-release.sh dist/readiness-repro
+exit 0
+
+$ diff -rq dist/v0.1.0 dist/readiness-repro
+exit 0
+
+$ /tmp/siaas-cli-powershell/pwsh -NoProfile -NonInteractive -File tests/powershell-policy.ps1
+exit 0
+
+$ /tmp/siaas-cli-powershell/pwsh -NoProfile -NonInteractive -File install.ps1 -Help
+exit 0
+
+$ /tmp/siaas-cli-powershell/pwsh -NoProfile -NonInteractive -File install.ps1
+exit 2
+
+$ env -i PATH=/nonexistent HOME=/tmp ./dist/v0.1.0/siaas-cli_0.1.0_linux_amd64 --version --json
+exit 0
+
+$ file dist/v0.1.0/siaas-cli_0.1.0_linux_amd64
+exit 0
+
+$ readelf -l dist/v0.1.0/siaas-cli_0.1.0_linux_amd64 | rg INTERP
+exit 1
+
+$ ldd dist/v0.1.0/siaas-cli_0.1.0_linux_amd64
+exit 1
+
+$ bash tools/prepare-release.sh dist/v0.1.0 (repeat)
+exit 2
+
+Cross-build output:
+Built siaas-cli_0.1.0_linux_amd64 (2580604 bytes)
+Built siaas-cli_0.1.0_linux_arm64 (2556028 bytes)
+Built siaas-cli_0.1.0_darwin_amd64 (2630976 bytes)
+Built siaas-cli_0.1.0_darwin_arm64 (2494818 bytes)
+Built siaas-cli_0.1.0_windows_amd64.exe (2744832 bytes)
+Built siaas-cli_0.1.0_windows_arm64.exe (2541056 bytes)
+
+Release assembly/checksum output:
+Built siaas-cli_0.1.0_linux_amd64 (2580604 bytes)
+Built siaas-cli_0.1.0_linux_arm64 (2556028 bytes)
+Built siaas-cli_0.1.0_darwin_amd64 (2630976 bytes)
+Built siaas-cli_0.1.0_darwin_arm64 (2494818 bytes)
+Built siaas-cli_0.1.0_windows_amd64.exe (2744832 bytes)
+Built siaas-cli_0.1.0_windows_arm64.exe (2541056 bytes)
+siaas-cli_0.1.0_linux_amd64: OK
+siaas-cli_0.1.0_linux_arm64: OK
+siaas-cli_0.1.0_darwin_amd64: OK
+siaas-cli_0.1.0_darwin_arm64: OK
+siaas-cli_0.1.0_windows_amd64.exe: OK
+siaas-cli_0.1.0_windows_arm64.exe: OK
+cli-release-v1.txt: OK
+install.sh: OK
+install.ps1: OK
+RELEASE_NOTES.md: OK
+GO-LICENSE.txt: OK
+Prepared unsigned local candidate: dist/v0.1.0
+
+Supplemental PowerShell output:
+PASS: installer syntax; 4 accepted, 10 rejected URIs; relative GitHub redirect. Native Windows remains unverified on non-Windows hosts.

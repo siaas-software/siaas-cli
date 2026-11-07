@@ -1,5 +1,10 @@
 # M1 reproducible validation report
 
+Historical foundation validation. For the subsequent security fixes, public
+visibility check and repeated release-candidate validation, see
+[v0.1.0 release readiness](release-readiness-v0.1.0.md). Statements below about
+private visibility describe the earlier observation, not the current repository.
+
 Date: 2026-11-07. Repository: `siaas-software/siaas-cli` only.
 Default branch inspected: `main`, baseline
 `541de994375ea7bc79a87f68422566e7c4f10ed2` (`Initial commit`).

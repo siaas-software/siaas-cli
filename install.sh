@@ -69,14 +69,32 @@ stage=$(mktemp -d "$install_dir/.siaas-cli-stage.XXXXXXXX" 2>/dev/null) || fail 
 target="$install_dir/siaas"
 [[ ! -L "$target" && ( ! -e "$target" || -f "$target" ) ]] || fail 6 'Existing siaas target is not a regular file. Inspect it without deleting application data.'
 get() {
-  local name="$1" destination="$2" limit="$3" url="$4"
+  local name="$1" destination="$2" limit="$3" url="$4" info status redirect
   if [[ -n "$fixture" ]]; then
     [[ -f "$fixture/$name" && ! -L "$fixture/$name" ]] || fail 7 'Required local release artifact is missing or is a symlink. Rebuild the release directory.'
+    [[ $(wc -c < "$fixture/$name") -le "$limit" ]] || fail 6 'Release artifact exceeds the permitted size.'
     cp -- "$fixture/$name" "$destination" 2>/dev/null || fail 6 'Cannot stage local artifact. Check permissions and free space.'
   else
-    curl --fail --silent --location --proto '=https' --proto-redir '=https' \
-      --max-redirs 5 --connect-timeout 20 --max-time 180 --max-filesize "$limit" \
-      "$url" -o "$destination" 2>/dev/null || fail 7 'CLI release unavailable or download failed. No remote installation is guaranteed before publication. Check network/release access or use local fixtures.'
+    for ((redirect=0; redirect<=5; redirect++)); do
+      # Validate every hop BEFORE connecting. No userinfo, alternate ports,
+      # fragments, backslashes or control characters; only GitHub release hosts.
+      [[ "$url" =~ ^https://(github\.com|release-assets\.githubusercontent\.com|objects\.githubusercontent\.com)(:443)?/ \
+         && ! "$url" =~ [[:cntrl:][:space:]] && "$url" != *\\* && "$url" != *'#'* ]] || fail 6 'Untrusted release redirect refused.'
+      # --disable must be first: an ambient .curlrc cannot enable insecure TLS,
+      # automatic redirects, credentials or an alternate output destination.
+      # curl resolves relative Location values through redirect_url without -L.
+      info=$(curl --disable --fail --silent --proto '=https' --proto-redir '=https' \
+        --connect-timeout 20 --max-time 180 --max-filesize "$limit" \
+        --write-out '%{http_code}\n%{redirect_url}' -o "$destination" "$url" 2>/dev/null) || fail 7 'CLI release unavailable or download failed. Check network/release access or use local fixtures; existing CLI preserved.'
+      status="${info%%$'\n'*}"
+      case "$status" in
+        200) break ;;
+        301|302|303|307|308)
+          [[ "$redirect" -lt 5 ]] || fail 7 'Too many release redirects. Existing CLI preserved.'
+          url="${info#*$'\n'}" ;;
+        *) fail 7 'Release server returned an unexpected response. Existing CLI preserved.' ;;
+      esac
+    done
   fi
   [[ $(wc -c < "$destination") -le "$limit" ]] || fail 6 'Release artifact exceeds the permitted size.'
 }
@@ -85,10 +103,13 @@ get cli-release-v1.txt "$stage/manifest" 65536 "$base/latest/download/cli-releas
 IFS=' ' read -r schema version extra < "$stage/manifest" || fail 6 'Release metadata is empty or incomplete.'
 [[ "$schema" == siaas-cli-release-v1 && -z "${extra:-}" && "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || fail 6 'Invalid release metadata schema/version. Obtain a verified CLI release.'
 found=0
+seen=' '
 artifact='' expected='' bytes=''
 while IFS=' ' read -r row_os row_arch row_name row_hash row_bytes row_extra || [[ -n "${row_os:-}" ]]; do
   [[ -n "${row_os:-}" ]] || fail 6 'Invalid blank metadata entry.'
   case "$row_os/$row_arch" in linux/amd64|linux/arm64|darwin/amd64|darwin/arm64|windows/amd64|windows/arm64) ;; *) fail 6 'Invalid platform in release metadata.' ;; esac
+  [[ "$seen" != *" $row_os/$row_arch "* ]] || fail 7 'Release contains duplicate platform entries. Existing CLI preserved.'
+  seen="$seen$row_os/$row_arch "
   suffix=''; [[ "$row_os" != windows ]] || suffix='.exe'
   [[ -z "${row_extra:-}" && "$row_name" == "siaas-cli_${version}_${row_os}_${row_arch}${suffix}"
      && "$row_hash" =~ ^[a-f0-9]{64}$ && "$row_bytes" =~ ^[1-9][0-9]{0,8}$ ]] || fail 6 'Invalid release artifact metadata.'

@@ -12,6 +12,11 @@ function Fail([int]$Code, [string]$Message) {
     $script:ResultCode = $Code
     throw [InvalidOperationException]::new($Message)
 }
+function Test-TrustedReleaseUri([Uri]$Uri) {
+    return ($Uri.OriginalString -cmatch '^https://(github\.com|release-assets\.githubusercontent\.com|objects\.githubusercontent\.com)(:443)?/' -and
+        $Uri.OriginalString -notmatch '[\s\x00-\x1f\x7f\\#]' -and $Uri.Scheme -eq 'https' -and $Uri.Port -eq 443 -and -not $Uri.UserInfo -and -not $Uri.Fragment -and
+        $Uri.Host -in @('github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'))
+}
 function Get-Artifact([string]$Name, [string]$Destination, [long]$Limit, [string]$URL) {
     if ($FromDir) {
         $source = [IO.Path]::Combine($FromDir, $Name)
@@ -23,7 +28,7 @@ function Get-Artifact([string]$Name, [string]$Destination, [long]$Limit, [string
     }
     $uri = [Uri]$URL
     for ($redirect = 0; $redirect -le 5; $redirect++) {
-        if ($uri.Scheme -ne 'https' -or $uri.UserInfo -or $uri.Host -notin @('github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com')) {
+        if (-not (Test-TrustedReleaseUri $uri)) {
             Fail 6 'Untrusted release redirect refused.'
         }
         $request = [Net.HttpWebRequest]::Create($uri)
@@ -35,6 +40,8 @@ function Get-Artifact([string]$Name, [string]$Destination, [long]$Limit, [string
         catch { Fail 7 'CLI release unavailable or download failed. Check release access/network or use local fixtures; remote installation is not guaranteed before publication.' }
         try {
             if ([int]$response.StatusCode -in @(301,302,303,307,308)) {
+                if ($redirect -eq 5) { Fail 7 'Too many release redirects. Existing CLI preserved.' }
+                if (-not $response.Headers['Location'] -or $response.Headers['Location'] -match '[\s\x00-\x1f\x7f\\#]') { Fail 6 'Untrusted release redirect refused.' }
                 $uri = [Uri]::new($uri, $response.Headers['Location'])
                 continue
             }
@@ -88,6 +95,10 @@ try {
         if ($InstallDir -notmatch '^[A-Za-z]:[\\/]' -or $InstallDir -match '[\x00-\x1f\x7f]' -or $InstallDir -match '(^|[\\/])\.{1,2}([\\/]|$)') {
             Fail 2 'Use an absolute local-volume directory without control characters or dot components.'
         }
+        # Refuse NTFS alternate streams and Windows normalization/device aliases.
+        foreach ($component in $InstallDir.Substring(3).Split([char[]]'\/')) {
+            if ($component -match '[:<>"|?*]' -or $component -match '[ .]$' -or $component -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)') { Fail 2 'Ambiguous Windows path components are refused. Choose a private real directory.' }
+        }
         $InstallDir = [IO.Path]::GetFullPath($InstallDir).TrimEnd('\','/')
         if ($InstallDir.Length -le 3) { Fail 2 'Installing at a volume root is refused.' }
         $cursor = $InstallDir
@@ -115,9 +126,13 @@ try {
         if ($lines.Length -lt 2 -or $lines[0] -cnotmatch '^siaas-cli-release-v1 ((?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*))$') { Fail 6 'Invalid release metadata schema/version.' }
         $version = $Matches[1]
         $selected = @()
+        $seen = @()
         foreach ($line in $lines[1..($lines.Length-1)]) {
             $fields = $line.Split(' ')
-            if ($fields.Length -ne 5 -or ($fields[0]+'/'+$fields[1]) -notin @('linux/amd64','linux/arm64','darwin/amd64','darwin/arm64','windows/amd64','windows/arm64')) { Fail 6 'Invalid release platform entry.' }
+            if ($fields.Length -ne 5 -or ($fields[0]+'/'+$fields[1]) -cnotin @('linux/amd64','linux/arm64','darwin/amd64','darwin/arm64','windows/amd64','windows/arm64')) { Fail 6 'Invalid release platform entry.' }
+            $pair = $fields[0]+'/'+$fields[1]
+            if ($pair -cin $seen) { Fail 7 'Release contains duplicate platform entries. Existing CLI preserved.' }
+            $seen += $pair
             $suffix = if ($fields[0] -eq 'windows') { '.exe' } else { '' }
             if ($fields[2] -cne "siaas-cli_${version}_$($fields[0])_$($fields[1])$suffix" -or $fields[3] -cnotmatch '^[a-f0-9]{64}$' -or $fields[4] -notmatch '^[1-9][0-9]{0,8}$') { Fail 6 'Invalid release artifact metadata.' }
             if ($fields[0] -eq 'windows' -and $fields[1] -eq $arch) { $selected += ,$fields }

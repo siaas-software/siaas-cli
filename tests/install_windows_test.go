@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -27,6 +28,56 @@ func winFixture(t *testing.T) (string, string) {
 	winWrite(t, filepath.Join(dir, name), data)
 	winWrite(t, filepath.Join(dir, "cli-release-v1.txt"), []byte(fmt.Sprintf("siaas-cli-release-v1 0.1.0\nwindows %s %s %x %d\n", runtime.GOARCH, name, sha256.Sum256(data), len(data))))
 	return dir, name
+}
+
+func TestWindowsLockedTargetPreservesBackup(t *testing.T) {
+	source, _ := winFixture(t)
+	dir := t.TempDir()
+	target := filepath.Join(dir, "siaas.exe")
+	backup := filepath.Join(dir, "siaas.exe.backup.previous")
+	winWrite(t, target, []byte("old CLI"))
+	winWrite(t, backup, []byte("older CLI"))
+	p, err := syscall.UTF16PtrFromString(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, err := syscall.CreateFile(p, syscall.GENERIC_READ, 0, nil, syscall.OPEN_EXISTING, syscall.FILE_ATTRIBUTE_NORMAL, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if h != syscall.InvalidHandle {
+			_ = syscall.CloseHandle(h)
+		}
+	}()
+	if code, out := winInstall(t, dir, source); code != 6 {
+		t.Fatalf("locked target %d %s", code, out)
+	}
+	if err := syscall.CloseHandle(h); err != nil {
+		t.Fatal(err)
+	}
+	h = syscall.InvalidHandle
+	old, _ := os.ReadFile(target)
+	retained, _ := os.ReadFile(backup)
+	if string(old) != "old CLI" || string(retained) != "older CLI" {
+		t.Fatal("locked replacement lost previous bytes")
+	}
+	if code, out := winInstall(t, dir, source); code != 0 {
+		t.Fatalf("retry %d %s", code, out)
+	}
+	backups, _ := filepath.Glob(filepath.Join(dir, "siaas.exe.backup.*"))
+	if len(backups) != 2 {
+		t.Fatal("retry pruned or lost a backup")
+	}
+}
+
+func TestWindowsAmbiguousPaths(t *testing.T) {
+	source, _ := winFixture(t)
+	for _, suffix := range []string{"stream:secret-sentinel", "trailing. ", "NUL", "COM1.txt", "parent/../child"} {
+		if code, out := winInstall(t, t.TempDir()+`\`+suffix, source); code != 2 || strings.Contains(out, "secret-sentinel") {
+			t.Fatalf("ambiguous path %d %s", code, out)
+		}
+	}
 }
 func winWrite(t *testing.T, path string, data []byte) {
 	t.Helper()

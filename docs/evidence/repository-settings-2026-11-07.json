@@ -1,0 +1,209 @@
+{
+  "observedAt": "2026-11-07",
+  "scope": "Read-only repository settings review; no administrative changes",
+  "repositories": {
+    "siaas-cli": {
+      "full_name": "siaas-software/siaas-cli",
+      "private": false,
+      "visibility": "public",
+      "default_branch": "main",
+      "archived": false,
+      "allow_forking": true,
+      "allow_auto_merge": false,
+      "delete_branch_on_merge": false,
+      "allow_merge_commit": true,
+      "allow_squash_merge": true,
+      "allow_rebase_merge": true,
+      "has_issues": true,
+      "main": {
+        "protected": false,
+        "protection": {
+          "enabled": false,
+          "required_status_checks": {
+            "enforcement_level": "off",
+            "contexts": [],
+            "checks": []
+          }
+        }
+      },
+      "rulesets": [],
+      "classicProtectionRead": "HTTP 403 Resource not accessible by integration",
+      "securityAndAnalysis": "UNVERIFIED: field omitted from repository response"
+    },
+    "siaas-personal": {
+      "full_name": "siaas-software/siaas-personal",
+      "private": false,
+      "visibility": "public",
+      "default_branch": "main",
+      "archived": false,
+      "allow_forking": true,
+      "allow_auto_merge": false,
+      "delete_branch_on_merge": false,
+      "allow_merge_commit": true,
+      "allow_squash_merge": true,
+      "allow_rebase_merge": true,
+      "has_issues": true,
+      "main": {
+        "protected": true,
+        "protection": {
+          "enabled": false,
+          "required_status_checks": {
+            "enforcement_level": "off",
+            "contexts": [],
+            "checks": []
+          }
+        }
+      },
+      "rulesets": [
+        {
+          "id": 25665792,
+          "name": "GitFlow - main and develop",
+          "target": "branch",
+          "source_type": "Repository",
+          "source": "siaas-software/siaas-personal",
+          "enforcement": "active",
+          "node_id": "RRS_lACqUmVwb3NpdG9yec5VK1MZzgGHoQA",
+          "_links": {
+            "self": {
+              "href": "https://api.github.com/repos/siaas-software/siaas-personal/rulesets/25665792"
+            },
+            "html": {
+              "href": "https://github.com/siaas-software/siaas-personal/rules/25665792"
+            }
+          },
+          "created_at": "2026-10-22T20:44:57.059+02:00",
+          "updated_at": "2026-10-22T20:44:57.088+02:00"
+        },
+        {
+          "id": 25666094,
+          "name": "Release tags - v*",
+          "target": "tag",
+          "source_type": "Repository",
+          "source": "siaas-software/siaas-personal",
+          "enforcement": "active",
+          "node_id": "RRS_lACqUmVwb3NpdG9yec5VK1MZzgGHoi4",
+          "_links": {
+            "self": {
+              "href": "https://api.github.com/repos/siaas-software/siaas-personal/rulesets/25666094"
+            },
+            "html": {
+              "href": "https://github.com/siaas-software/siaas-personal/rules/25666094"
+            }
+          },
+          "created_at": "2026-10-22T20:48:17.052+02:00",
+          "updated_at": "2026-10-22T20:48:17.099+02:00"
+        }
+      ],
+      "classicProtectionRead": "HTTP 403 Resource not accessible by integration",
+      "securityAndAnalysis": "UNVERIFIED: field omitted from repository response"
+    }
+  },
+  "personalRuleDetails": [
+    {
+      "id": 25665792,
+      "name": "GitFlow - main and develop",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "siaas-software/siaas-personal",
+      "enforcement": "active",
+      "conditions": {
+        "ref_name": {
+          "exclude": [],
+          "include": [
+            "refs/heads/main",
+            "refs/heads/develop"
+          ]
+        }
+      },
+      "rules": [
+        {
+          "type": "deletion"
+        },
+        {
+          "type": "non_fast_forward"
+        },
+        {
+          "type": "pull_request",
+          "parameters": {
+            "required_approving_review_count": 0,
+            "dismiss_stale_reviews_on_push": false,
+            "required_reviewers": [],
+            "require_code_owner_review": false,
+            "dismissal_restriction": {
+              "enabled": false,
+              "allowed_actors": []
+            },
+            "require_last_push_approval": false,
+            "required_review_thread_resolution": true,
+            "require_extra_approval_for_unattributed_changes": false,
+            "allowed_merge_methods": [
+              "merge",
+              "squash",
+              "rebase"
+            ]
+          }
+        }
+      ],
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5VK1MZzgGHoQA",
+      "created_at": "2026-10-22T20:44:57.059+02:00",
+      "updated_at": "2026-10-22T20:44:57.088+02:00",
+      "bypass_actors": [],
+      "current_user_can_bypass": "never",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/siaas-software/siaas-personal/rulesets/25665792"
+        },
+        "html": {
+          "href": "https://github.com/siaas-software/siaas-personal/rules/25665792"
+        }
+      }
+    },
+    {
+      "id": 25666094,
+      "name": "Release tags - v*",
+      "target": "tag",
+      "source_type": "Repository",
+      "source": "siaas-software/siaas-personal",
+      "enforcement": "active",
+      "conditions": {
+        "ref_name": {
+          "exclude": [],
+          "include": [
+            "refs/tags/v*"
+          ]
+        }
+      },
+      "rules": [
+        {
+          "type": "deletion"
+        },
+        {
+          "type": "non_fast_forward"
+        },
+        {
+          "type": "update"
+        }
+      ],
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5VK1MZzgGHoi4",
+      "created_at": "2026-10-22T20:48:17.052+02:00",
+      "updated_at": "2026-10-22T20:48:17.099+02:00",
+      "bypass_actors": [],
+      "current_user_can_bypass": "never",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/siaas-software/siaas-personal/rulesets/25666094"
+        },
+        "html": {
+          "href": "https://github.com/siaas-software/siaas-personal/rules/25666094"
+        }
+      }
+    }
+  ],
+  "cliReleases": [],
+  "limitations": [
+    "Administrative security settings inaccessible; no inference that missing fields mean disabled.",
+    "vulnerability-alerts and actions/permissions endpoints rejected by connector URL policy (400).",
+    "Anonymous github.com repository page HTTP 200; unauthenticated api.github.com access blocked by environment proxy (403 CONNECT/HTTP 000).",
+    "No CLI release exists: actual anonymous asset downloads remain UNVERIFIED."
+  ]
+}

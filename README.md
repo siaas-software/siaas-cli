@@ -127,10 +127,12 @@ the same as reproducibility after timestamped platform signing.
 
 ## Install the CLI using the bootstrap
 
-**There are no published CLI releases as of M1 validation.** The repository is
-currently private. Do not treat the prospective GitHub release paths in the
-scripts as working public downloads. Remote bootstrap has not been validated.
-No release was published for this work.
+**There are no published CLI releases as of the 2026-11-07 readiness review.**
+The repository is public, and its page was accessible anonymously. Release asset
+downloads and remote bootstrap remain unverified until publication. No release,
+tag or administrative setting was created or changed for this work. See the
+[release-readiness verdict](docs/release-readiness-v0.1.0.md) and
+[public installation instructions](docs/public-installation.md).
 
 For an offline, locally built installation from this checkout:
 
@@ -159,6 +161,10 @@ Once public releases are separately authorized and published using the
 can be run without `--from-dir` / `-FromDir`. It uses the fixed repository's latest
 stable release metadata over HTTPS and derives an immutable versioned artifact
 path. No application version argument or existing language runtime is required.
+Both bootstraps validate every redirect before connecting: HTTPS on port 443,
+at most five hops, and only `github.com`, `release-assets.githubusercontent.com`
+or `objects.githubusercontent.com`. Userinfo, fragments, control characters,
+backslashes and other hosts/ports are refused. Bash ignores ambient curl config.
 Private release authentication is not implemented; the scripts fail clearly
 instead of requesting or exposing tokens.
 
@@ -218,3 +224,16 @@ credentials or paid services were introduced.
 
 See the [architecture decision](docs/adr/0001-standalone-runtime.md),
 [validation report](docs/validation-m1.md), and [future product contract](docs/product-manifest-contract.md).
+
+For a complete **local unsigned candidate** on a Linux development host with GNU
+utilities and the pinned Go compiler, use a fresh output directory:
+
+```sh
+bash tools/prepare-release.sh dist/v0.1.0
+```
+
+This assembles all six target binaries, `SHA256SUMS`, `cli-release-v1.txt`, both
+bootstrap scripts, `RELEASE_NOTES.md` and `GO-LICENSE.txt`. It performs no upload,
+tagging or publication. Cross-compiled targets remain unverified. The
+[security review](docs/security-review.md) records fixes, trust assumptions and
+remaining release gates. **Current release verdict: NOT READY.**

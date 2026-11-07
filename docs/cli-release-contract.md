@@ -11,8 +11,11 @@ For CLI version `X.Y.Z`, a future stable release in
 repository's `releases/latest/download/cli-release-v1.txt`. It derives the selected
 artifact's `releases/download/vX.Y.Z/<canonical-filename>` path from validated
 fields, never from an arbitrary URL in metadata. These are **prospective routing
-rules**, not assertions that any version is currently downloadable. The currently
-private repository is not usable anonymously by these scripts.
+rules**, not assertions that any version is currently downloadable. The repository
+was verified public on 2026-11-07; no release assets exist yet. Publication must use
+a public, non-draft stable release, designated latest, with all referenced assets
+uploaded before publication. The scripts send no GitHub credentials. Actual
+anonymous asset accessibility still needs a post-publication smoke test.
 
 The manifest is a UTF-8, LF-terminated text file with no BOM, blank lines or comments:
 
@@ -29,12 +32,28 @@ version/target, so traversal, flags and URL injection cannot become artifact pat
 Exactly one matching platform row is required. Metadata is limited to 64 KiB and
 the selected raw binary to 100,000,000 bytes. The release publisher must not include
 duplicate rows, even for a different target than the current installer selects.
+Both installers now enforce that rule (exit 7), correcting the earlier acceptance
+of duplicates for non-selected platforms. Canonical v1 manifests remain compatible.
 
 The build also emits conventional `SHA256SUMS` for manual verification. Bootstrap
 uses the SHA-256 and byte count published in the manifest; those checksums must
 agree with `SHA256SUMS`. Hashes do not independently authenticate a publisher who
 controls both artifact and manifest. HTTPS/repository authority is the M1 trust
 anchor; stronger signing is a documented follow-up, not silently claimed here.
+Every transport hop is HTTPS, default port 443, through exactly `github.com`,
+`release-assets.githubusercontent.com` or `objects.githubusercontent.com`. At most
+five redirects are followed. Relative redirects are resolved by curl/.NET before
+the next URI is checked; userinfo, backslashes, fragments, control characters and
+other destinations are refused. Certificate validation stays enabled. Bash
+disables curl configuration files and never enables automatic redirect following.
+
+`tools/prepare-release.sh` assembles a fresh local candidate, adding `install.sh`,
+`install.ps1`, `RELEASE_NOTES.md` and `GO-LICENSE.txt` to the six raw binaries and
+two metadata files. `SHA256SUMS` covers all eleven other assets, including the
+manifest; the manifest contains only the six binary rows. The supplemental hashes
+do not change the bootstrap v1 format. A failed assembly never renames its staging
+directory to the destination. The developer helper requires GNU `sha256sum` and
+`mv`; this is not an end-user runtime requirement.
 
 ## Local fixture path
 

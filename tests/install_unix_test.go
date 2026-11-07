@@ -98,7 +98,7 @@ func TestUnixInstallRepeatAndReplacement(t *testing.T) {
 	}
 }
 func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
-	for _, mode := range []string{"corruption", "truncated", "missing binary", "missing manifest", "wrong schema", "wrong version", "missing platform", "duplicate platform", "traversal", "invalid hash", "symlink artifact"} {
+	for _, mode := range []string{"corruption", "truncated", "oversized binary", "oversized manifest", "missing binary", "missing manifest", "wrong schema", "wrong version", "missing platform", "duplicate platform", "duplicate other platform", "traversal", "invalid hash", "symlink artifact"} {
 		t.Run(mode, func(t *testing.T) {
 			source, name := fixture(t)
 			path := filepath.Join(source, name)
@@ -113,6 +113,11 @@ func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
 				write(t, path, b, 0755)
 			case "truncated":
 				write(t, path, []byte("short"), 0755)
+			case "oversized binary":
+				b, _ := os.ReadFile(path)
+				write(t, path, append(b, 0), 0755)
+			case "oversized manifest":
+				write(t, meta, []byte(strings.Repeat("x", 65537)), 0600)
 			case "missing binary":
 				os.Remove(path)
 				want = 7
@@ -128,6 +133,10 @@ func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
 				want = 7
 			case "duplicate platform":
 				write(t, meta, []byte(text+strings.Split(text, "\n")[1]+"\n"), 0600)
+				want = 7
+			case "duplicate other platform":
+				row := strings.ReplaceAll(strings.Split(text, "\n")[1], "linux", "darwin")
+				write(t, meta, []byte(text+row+"\n"+row+"\n"), 0600)
 				want = 7
 			case "traversal":
 				write(t, meta, []byte(strings.Replace(text, name, "../escape", 1)), 0600)
@@ -275,6 +284,10 @@ func TestUnixInterruptedInstall(t *testing.T) {
 					t.Fatal("commit barrier not reached")
 				}
 				time.Sleep(10 * time.Millisecond)
+			}
+			// A genuinely concurrent invocation must not remove the active lock/stage.
+			if code, out := runInstaller(t, dir, source, nil); code != 4 {
+				t.Fatalf("concurrent install %d %s", code, out)
 			}
 			if err := syscall.Kill(-cmd.Process.Pid, signal); err != nil {
 				t.Fatal(err)
