@@ -145,7 +145,7 @@ bash ./install.sh --from-dir "$PWD/dist" --install-dir "$HOME/.local/bin"
 "$HOME/.local/bin/siaas" --version
 ```
 
-On Windows, after building on Windows (native execution remains unverified here):
+On Windows, after building on Windows:
 
 ```powershell
 go run ./tools/build
@@ -214,16 +214,18 @@ power loss and recovery from hostile filesystem changes are not guaranteed.
 
 | Target | Build | Native CLI/bootstrap acceptance in M1 |
 | --- | --- | --- |
-| Linux x64 | PASS | PASS on Debian 13.6; static binary, offline Unix fixtures |
-| Linux arm64 | Cross-build PASS | UNVERIFIED |
-| macOS x64 / arm64 | Cross-build PASS | UNVERIFIED; signing/notarization and OS policy require native validation |
-| Windows x64 / arm64 | Cross-build PASS | UNVERIFIED; PowerShell 5.1, NTFS replacement, file locks, ACLs and Authenticode require native validation |
+| Linux x64 | Native PASS | PASS on Debian 13.6 and `ubuntu-24.04`; offline fixtures |
+| Linux arm64 | Native PASS | PASS on `ubuntu-24.04-arm`; offline fixtures |
+| macOS x64 / arm64 | Native PASS | PASS on `macos-15-intel` / `macos-15`; offline fixtures |
+| Windows x64 / arm64 | Native PASS | PASS on `windows-2022` / `windows-11-arm`, PowerShell 5.1 Desktop; offline fixtures, exclusive locks and running-image replacement |
 
-PowerShell 7.6.9 on Linux was used only for syntax, help and safe rejection checks.
-That is not Windows installer acceptance. Cross-built binaries are candidates,
-not certified releases. Public distribution must define minimum OS versions and
-complete native tests/signing decisions before claiming support. No signing
-credentials or paid services were introduced.
+The [native acceptance report](docs/native-acceptance.md) links all six successful
+jobs, exact tested commit, 378 passing test/subtest events and Windows PowerShell
+versions. No real remote Release installation was tested. Hosted Windows accounts
+may be administrators; standard-user ACL/reparse-point behavior remains unverified.
+Downloaded-file SmartScreen/Gatekeeper behavior, signing/notarization decisions
+and support for older OS versions remain outside this acceptance. No signing
+credentials, artifact uploads or paid services were introduced.
 
 See the [architecture decision](docs/adr/0001-standalone-runtime.md),
 [validation report](docs/validation-m1.md), and [future product contract](docs/product-manifest-contract.md).
@@ -237,6 +239,7 @@ bash tools/prepare-release.sh dist/v0.1.0
 
 This assembles all six target binaries, `SHA256SUMS`, `cli-release-v1.txt`, both
 bootstrap scripts, `RELEASE_NOTES.md` and `GO-LICENSE.txt`. It performs no upload,
-tagging or publication. Cross-compiled targets remain unverified. The
+tagging or publication. All six targets now have native offline acceptance. The
 [security review](docs/security-review.md) records fixes, trust assumptions and
-remaining release gates. **Current release verdict: NOT READY.**
+remaining release gates. **Native acceptance: READY. Public release: NOT READY
+for authorization pending the documented review/distribution decisions.**

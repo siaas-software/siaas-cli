@@ -27,8 +27,9 @@ installation procedure **for use after separately authorized publication**.
 
    Use your existing script execution policy. If policy rejects the unsigned
    script, obtain an organization-approved execution method; do not bypass TLS,
-   PowerShell policy, antivirus or Gatekeeper. Windows/macOS native acceptance
-   remains UNVERIFIED; these instructions do not certify those platforms.
+   PowerShell policy, antivirus or Gatekeeper. Windows/macOS native offline
+   acceptance now passes on the [recorded hosted runners](native-acceptance.md);
+   downloaded-file OS policy and remote installation remain unverified.
 
 No application version argument, administrator rights or separately installed
 Node.js/npm/Electron/Docker/Ollama/Go is required. Bash/curl and standard Unix

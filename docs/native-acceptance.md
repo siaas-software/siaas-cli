@@ -77,6 +77,77 @@ update restriction gap; no setting was modified by this work.
 
 ## Recorded run
 
-Pending execution. No native job is considered passed until its completed result
-and test log have been inspected. The existing release verdict remains NOT READY
-until the actual matrix and remaining distribution/review gates are assessed.
+**READY for the requested M1 native offline acceptance.** All six completed jobs
+and their test logs were inspected in
+[run 42411030838](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838),
+triggered by PR #1 at tested commit
+`b3d6abf328c0f41cdbcee44a2d3db76f0782d72d`. Run conclusion: `success`.
+The subsequent documentation-only commit records these results without rerunning
+unchanged tests. It does not extend the tested scope.
+
+| Runner / target | Job | Test/subtest passes | Result |
+| --- | --- | --- | --- |
+| ubuntu-24.04 / linux/amd64 | [128519002046](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519002046) | 72 | PASS |
+| ubuntu-24.04-arm / linux/arm64 | [128519001852](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001852) | 72 | PASS |
+| windows-2022 / windows/amd64 | [128519002189](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519002189) | 45 | PASS |
+| windows-11-arm / windows/arm64 | [128519001918](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001918) | 45 | PASS |
+| macos-15-intel / darwin/amd64 | [128519001937](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001937) | 72 | PASS |
+| macos-15 / darwin/arm64 | [128519001969](https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001969) | 72 | PASS |
+
+Total: **378 passing test/subtest events**, no failing or skipped test cases.
+Platform-inapplicable workflow steps are skipped by design (for example, the
+PowerShell step on Linux); they are not counted as tests. The API artifact list
+is empty. All six native release SHA-256 values and sizes match the earlier Linux
+cross-build inventory in `docs/evidence/v0.1.0-artifacts.json`.
+
+Windows evidence from the actual Go test subprocesses:
+
+```text
+windows-2022:   Windows PowerShell 5.1.20348.5773 Desktop
+windows-11-arm: Windows PowerShell 5.1.26100.9711 Desktop
+```
+
+Both Windows jobs passed `TestWindowsLockedTargetPreservesBackup`,
+`TestWindowsRunningExecutableReplacement` and `TestWindowsBootstrap`. Replacement
+while the fixture executable was running returned **0** on both runners, retaining
+the previous executable as a backup; after process exit, retry was safe. Exclusive
+file handles caused the expected **6**, leaving existing bytes and prior backups
+intact. Space/Unicode destinations, repeat installation, actual installed binary
+execution with an empty PATH, and same-size checksum corruption all passed.
+
+The initial [run 42410808788](https://github.com/siaas-software/siaas-cli/actions/runs/42410808788)
+at `805d239a75ddd7c7e5fb2adacb333bcbf9e106cc` passed both Linux jobs and failed both
+Windows and both macOS jobs. The Windows toolchain/formatting gate failed; the
+correction enforces LF checkout endings through `.gitattributes`, normalizes
+command-output line endings and prints explicit failure diagnostics. On macOS,
+the fake curl compared padded BSD `wc` output as a string, and a traversal fixture
+encountered the `/tmp` symlink before the intended dot-component check. Numeric
+comparison and a canonical temporary traversal path corrected the fixtures.
+The successful run retains the same security assertions. No installer or CLI
+runtime code was changed to make these tests pass.
+
+Local checks also passed: `go test -count=1 -timeout=5m ./...`,
+`go test -race -count=1 -timeout=5m ./...`,
+`go vet ./...`, Windows ARM64/macOS ARM64 test compilation, workflow YAML
+validation, `git diff --check` and documentation link checks. Remote native
+results are not inferred from those local checks.
+
+API results and selected log evidence are committed in
+[`native-acceptance-2026-11-07.json`](evidence/native-acceptance-2026-11-07.json).
+
+## Remaining release boundaries
+
+There is no failing job or Actions-policy blocker for this native acceptance
+scope. `protect-main` is active and `protect-release-tags` includes `update`;
+those earlier protection gaps are resolved. No administrative setting was changed
+by this work.
+
+**Public v0.1.0 publication remains NOT READY for authorization:** independent
+release/security review and an explicit unsigned-distribution/support decision
+remain open. Standard-user Windows ACL/reparse-point behavior, downloaded-file
+SmartScreen/Gatekeeper behavior and older OS versions are not established by
+these hosted tests. Administrative security settings outside the readable
+rulesets still need owner inspection. A real anonymous remote bootstrap is a
+post-publication verification gate, not a claimed pass. Signing is not provided
+or assumed to require paid infrastructure. PR #1 stays draft; merge, release-tag
+creation and publication require separate explicit approval.

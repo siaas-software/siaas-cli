@@ -1,5 +1,9 @@
 # M1 bootstrap security review — v0.1.0 candidate
 
+Historical pre-Actions review. Subsequent owner changes to repository protections
+and the authorized native workflow are recorded in
+[native acceptance](native-acceptance.md); use that report for current run evidence.
+
 Reviewed 2026-11-07 against foundation commit
 `0e695cb36b4f130460ed39c8174e0a8688bd9eef`, with corrections in PR #1.
 Scope: this repository's CLI, build tooling and bootstrap. No product lifecycle

@@ -1,5 +1,10 @@
 # M1 release readiness — v0.1.0
 
+Historical pre-Actions snapshot. The owner subsequently enabled branch/tag
+protections and authorized native acceptance on standard hosted runners. See
+[native acceptance](native-acceptance.md) for the later evidence and assessment;
+the observations below are retained as the original review record.
+
 **Verdict: NOT READY for the proposed public cross-platform release.** Local Linux
 acceptance and candidate assembly pass. Repository governance and native platform
 acceptance remain open. No release, tag, merge, Actions workflow, administrative

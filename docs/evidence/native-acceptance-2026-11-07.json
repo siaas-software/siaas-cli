@@ -1,0 +1,194 @@
+{
+  "observed_at": "2026-11-07",
+  "scope": "Native offline CLI/bootstrap acceptance; not remote release installation",
+  "run": {
+    "id": 42411030838,
+    "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838",
+    "head_sha": "b3d6abf328c0f41cdbcee44a2d3db76f0782d72d",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "attempt": 1
+  },
+  "initial_run": {
+    "id": 42410808788,
+    "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42410808788",
+    "head_sha": "805d239a75ddd7c7e5fb2adacb333bcbf9e106cc",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "windows-2022 (windows/amd64)",
+        "conclusion": "failure"
+      },
+      {
+        "name": "windows-11-arm (windows/arm64)",
+        "conclusion": "failure"
+      },
+      {
+        "name": "macos-15-intel (darwin/amd64)",
+        "conclusion": "failure"
+      },
+      {
+        "name": "ubuntu-24.04 (linux/amd64)",
+        "conclusion": "success"
+      },
+      {
+        "name": "ubuntu-24.04-arm (linux/arm64)",
+        "conclusion": "success"
+      },
+      {
+        "name": "macos-15 (darwin/arm64)",
+        "conclusion": "failure"
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "id": 128519001852,
+      "name": "ubuntu-24.04-arm (linux/arm64)",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001852",
+      "conclusion": "success",
+      "pass_events": 72,
+      "skipped_test_events": 0,
+      "evidence": [
+        "Native compiler host: linux/arm64; expected: linux/arm64",
+        "--- PASS: TestUnixInstallRepeatAndReplacement (0.07s)",
+        "--- PASS: TestUnixInterruptedInstall (0.18s)",
+        "standalone_test.go:60: Native test process: linux/arm64; compiler go1.27.3",
+        "standalone_test.go:86: Verified native release: siaas-cli_0.1.0_linux_arm64; bytes=2556028; SHA256=52fc5c478afb1f6a13f67b00d5c01e5d99097030fb5d2d93f637d62f50c59712",
+        "--- PASS: TestStandaloneWithoutRuntime (0.00s)"
+      ]
+    },
+    {
+      "id": 128519001918,
+      "name": "windows-11-arm (windows/arm64)",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001918",
+      "conclusion": "success",
+      "pass_events": 45,
+      "skipped_test_events": 0,
+      "evidence": [
+        "Native compiler host: windows/arm64; expected: windows/arm64",
+        "install_windows_test.go:27: Windows PowerShell 5.1.26100.9711 Desktop",
+        "install_windows_test.go:74: Running executable replacement exit=0: Installed SIAAS CLI 0.1.0. Previous executable retained as siaas.exe.backup.*.",
+        "--- PASS: TestWindowsLockedTargetPreservesBackup (45.94s)",
+        "--- PASS: TestWindowsBootstrap (67.82s)",
+        "standalone_test.go:60: Native test process: windows/arm64; compiler go1.27.3",
+        "standalone_test.go:86: Verified native release: siaas-cli_0.1.0_windows_arm64.exe; bytes=2541056; SHA256=98fdb5876b136b3bc0a45f2f8359f334d498307a0fccf26644d02718a7c205de",
+        "--- PASS: TestStandaloneWithoutRuntime (0.06s)"
+      ]
+    },
+    {
+      "id": 128519001937,
+      "name": "macos-15-intel (darwin/amd64)",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001937",
+      "conclusion": "success",
+      "pass_events": 72,
+      "skipped_test_events": 0,
+      "evidence": [
+        "Native compiler host: darwin/amd64; expected: darwin/amd64",
+        "--- PASS: TestUnixInstallRepeatAndReplacement (0.21s)",
+        "--- PASS: TestUnixInterruptedInstall (0.57s)",
+        "standalone_test.go:60: Native test process: darwin/amd64; compiler go1.27.3",
+        "standalone_test.go:86: Verified native release: siaas-cli_0.1.0_darwin_amd64; bytes=2630976; SHA256=7fa9e34caaeb123a54d1507bea1834926cb4ad1b07375f94a2a02f11bf00acc9",
+        "--- PASS: TestStandaloneWithoutRuntime (0.01s)"
+      ]
+    },
+    {
+      "id": 128519001969,
+      "name": "macos-15 (darwin/arm64)",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519001969",
+      "conclusion": "success",
+      "pass_events": 72,
+      "skipped_test_events": 0,
+      "evidence": [
+        "Native compiler host: darwin/arm64; expected: darwin/arm64",
+        "--- PASS: TestUnixInstallRepeatAndReplacement (0.13s)",
+        "--- PASS: TestUnixInterruptedInstall (0.35s)",
+        "standalone_test.go:60: Native test process: darwin/arm64; compiler go1.27.3",
+        "standalone_test.go:86: Verified native release: siaas-cli_0.1.0_darwin_arm64; bytes=2494818; SHA256=e8635ce6f6acccc502a72a74edba588c90ea2e38707c7a335b1bb3abd0bee844",
+        "--- PASS: TestStandaloneWithoutRuntime (0.01s)"
+      ]
+    },
+    {
+      "id": 128519002046,
+      "name": "ubuntu-24.04 (linux/amd64)",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519002046",
+      "conclusion": "success",
+      "pass_events": 72,
+      "skipped_test_events": 0,
+      "evidence": [
+        "Native compiler host: linux/amd64; expected: linux/amd64",
+        "--- PASS: TestUnixInstallRepeatAndReplacement (0.08s)",
+        "--- PASS: TestUnixInterruptedInstall (0.19s)",
+        "standalone_test.go:60: Native test process: linux/amd64; compiler go1.27.3",
+        "standalone_test.go:86: Verified native release: siaas-cli_0.1.0_linux_amd64; bytes=2580604; SHA256=1d1295d05d04bc43c5f2ca4d6a0881e656062db712125f08b4cf8e2b17fed1b0",
+        "--- PASS: TestStandaloneWithoutRuntime (0.00s)"
+      ]
+    },
+    {
+      "id": 128519002189,
+      "name": "windows-2022 (windows/amd64)",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42411030838/job/128519002189",
+      "conclusion": "success",
+      "pass_events": 45,
+      "skipped_test_events": 0,
+      "evidence": [
+        "Native compiler host: windows/amd64; expected: windows/amd64",
+        "install_windows_test.go:27: Windows PowerShell 5.1.20348.5773 Desktop",
+        "install_windows_test.go:74: Running executable replacement exit=0: Installed SIAAS CLI 0.1.0. Previous executable retained as siaas.exe.backup.*.",
+        "--- PASS: TestWindowsLockedTargetPreservesBackup (1.22s)",
+        "--- PASS: TestWindowsBootstrap (1.60s)",
+        "standalone_test.go:60: Native test process: windows/amd64; compiler go1.27.3",
+        "standalone_test.go:86: Verified native release: siaas-cli_0.1.0_windows_amd64.exe; bytes=2744832; SHA256=fb01f18e7e4faf07655e55371ec6d4ed5796fb1d59e780ceed2de17a30e55b18",
+        "--- PASS: TestStandaloneWithoutRuntime (0.03s)"
+      ]
+    }
+  ],
+  "artifacts": [],
+  "tag_ruleset": {
+    "id": 26770131,
+    "name": "protect-release-tags",
+    "target": "tag",
+    "source_type": "Repository",
+    "source": "siaas-software/siaas-cli",
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/tags/v*"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "update"
+      }
+    ],
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5WY9LQzgGYetM",
+    "created_at": "2026-11-07T20:37:32.163+01:00",
+    "updated_at": "2026-11-07T21:02:13.286+01:00",
+    "bypass_actors": [],
+    "current_user_can_bypass": "never",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/siaas-software/siaas-cli/rulesets/26770131"
+      },
+      "html": {
+        "href": "https://github.com/siaas-software/siaas-cli/rules/26770131"
+      }
+    }
+  },
+  "limitations": [
+    "No remote GitHub Releases installation tested.",
+    "Windows hosted accounts may be administrators; standard-user ACL and reparse-point acceptance is not established.",
+    "Unsigned locally built executables do not establish SmartScreen, Gatekeeper or notarized distribution acceptance.",
+    "Manual dispatch is configured but requires the workflow on the default branch; execution used PR #1."
+  ]
+}
