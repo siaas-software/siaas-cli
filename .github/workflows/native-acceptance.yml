@@ -74,9 +74,16 @@ jobs:
       - name: Verify native toolchain and formatting
         run: |
           go version
-          test "$(go env GOHOSTOS)" = "$SIAAS_EXPECTED_OS"
-          test "$(go env GOHOSTARCH)" = "$SIAAS_EXPECTED_ARCH"
-          test -z "$(gofmt -l cmd internal tools tests)"
+          actual_os=$(go env GOHOSTOS | tr -d '\r')
+          actual_arch=$(go env GOHOSTARCH | tr -d '\r')
+          printf 'Native compiler host: %s/%s; expected: %s/%s\n' "$actual_os" "$actual_arch" "$SIAAS_EXPECTED_OS" "$SIAAS_EXPECTED_ARCH"
+          test "$actual_os" = "$SIAAS_EXPECTED_OS"
+          test "$actual_arch" = "$SIAAS_EXPECTED_ARCH"
+          unformatted=$(gofmt -l cmd internal tools tests)
+          if test -n "$unformatted"; then
+            printf 'Go files requiring formatting:\n%s\n' "$unformatted"
+            exit 1
+          fi
           go vet ./...
       - name: Unix host and Bash syntax
         if: runner.os != 'Windows'

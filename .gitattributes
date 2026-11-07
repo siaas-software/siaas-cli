@@ -1,0 +1,2 @@
+# Keep scripts, embedded notices and Go sources identical on every native host.
+* text=auto eol=lf

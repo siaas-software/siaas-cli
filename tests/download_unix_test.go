@@ -63,9 +63,9 @@ case "$SIAAS_TEST_MODE" in
   status) printf '204\n'; exit 0 ;;
   redirect) printf '302\n%s' "$SIAAS_TEST_REDIRECT"; exit 0 ;;
 esac
-if [[ "$count" == 1 || "$count" == 3 ]]; then
+if [[ "$count" -eq 1 || "$count" -eq 3 ]]; then
   printf '302\n%s' "$SIAAS_TEST_REDIRECT"
-elif [[ "$count" == 2 ]]; then
+elif [[ "$count" -eq 2 ]]; then
   cp "$SIAAS_TEST_SOURCE/cli-release-v1.txt" "$destination"
   printf '200\n'
 else

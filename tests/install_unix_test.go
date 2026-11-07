@@ -173,7 +173,7 @@ func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
 }
 func TestUnixPathSafetyAndRedaction(t *testing.T) {
 	source, _ := fixture(t)
-	for _, dir := range []string{"/", "relative", "/tmp/../secret-sentinel", "/tmp/secret-sentinel\nnew"} {
+	for _, dir := range []string{"/", "relative", t.TempDir() + "/../secret-sentinel", "/tmp/secret-sentinel\nnew"} {
 		code, out := runInstaller(t, dir, source, nil)
 		if code != 2 || strings.Contains(out, "secret-sentinel") {
 			t.Fatalf("unsafe path response %d %s", code, out)
