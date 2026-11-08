@@ -27,7 +27,7 @@ function Assert-NoReparsePoint([string]$Path) {
 function Set-InternetZone([string]$Path) {
     # Raw HTTP streams do not automatically attach Mark-of-the-Web. Do not lose
     # the OS's opportunity to assess a new Internet-sourced executable.
-    try { [IO.File]::WriteAllText($Path + ':Zone.Identifier', "[ZoneTransfer]`r`nZoneId=3`r`n") }
+    try { Set-Content -LiteralPath $Path -Stream Zone.Identifier -Value "[ZoneTransfer]`r`nZoneId=3" -Encoding ASCII -ErrorAction Stop }
     catch { Fail 6 'Cannot retain Internet-origin security metadata. Use a private local filesystem supporting NTFS alternate streams.' }
 }
 function Get-Artifact([string]$Name, [string]$Destination, [long]$Limit, [string]$URL) {

@@ -17,7 +17,7 @@ try {
         . ([ScriptBlock]::Create($function.Extent.Text))
     }
     Set-InternetZone $binary.FullName
-    if ([IO.File]::ReadAllText($binary.FullName+':Zone.Identifier') -notmatch 'ZoneId=3') { throw 'Internet-origin marker missing.' }
+    if ((Get-Content -LiteralPath $binary.FullName -Stream Zone.Identifier -Raw) -notmatch 'ZoneId=3') { throw 'Internet-origin marker missing.' }
     if ((Get-FileHash -LiteralPath $binary.FullName).Hash -ne $before) { throw 'Origin metadata changed executable bytes.' }
     $signature = Get-AuthenticodeSignature -LiteralPath $binary.FullName
     Write-Output "OS_SECURITY Authenticode=$($signature.Status); ZoneId=3; SHA256 unchanged"
