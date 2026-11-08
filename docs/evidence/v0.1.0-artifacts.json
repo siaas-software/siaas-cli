@@ -1,0 +1,65 @@
+{
+  "status": "Unsigned local candidates; not published; native acceptance limited to Linux amd64",
+  "artifacts": [
+    {
+      "name": "GO-LICENSE.txt",
+      "bytes": 1453,
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+    },
+    {
+      "name": "RELEASE_NOTES.md",
+      "bytes": 2111,
+      "sha256": "a41093441229abce61d990aa2ef99e6e81e27587c5f60013be7c4c0fb41d81f8"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 982,
+      "sha256": "f877dde9f53ddf4ce114a10ed6202fe824bc108bee7548b19952e1915914f36e"
+    },
+    {
+      "name": "cli-release-v1.txt",
+      "bytes": 725,
+      "sha256": "21f10fcad3595264005ed9ff0b00e5e66bcf50debcef6e0cd91da17f1ef810a1"
+    },
+    {
+      "name": "install.ps1",
+      "bytes": 12357,
+      "sha256": "36ef8323d801c29e0086b75ddd33387405a65c57dce7d4d6e9ff41362fc8735a"
+    },
+    {
+      "name": "install.sh",
+      "bytes": 9018,
+      "sha256": "7697f066d9595a81e668055709efcee656d950733e3c4a209ee28c7467471922"
+    },
+    {
+      "name": "siaas-cli_0.1.0_darwin_amd64",
+      "bytes": 2630976,
+      "sha256": "7fa9e34caaeb123a54d1507bea1834926cb4ad1b07375f94a2a02f11bf00acc9"
+    },
+    {
+      "name": "siaas-cli_0.1.0_darwin_arm64",
+      "bytes": 2494818,
+      "sha256": "e8635ce6f6acccc502a72a74edba588c90ea2e38707c7a335b1bb3abd0bee844"
+    },
+    {
+      "name": "siaas-cli_0.1.0_linux_amd64",
+      "bytes": 2580604,
+      "sha256": "1d1295d05d04bc43c5f2ca4d6a0881e656062db712125f08b4cf8e2b17fed1b0"
+    },
+    {
+      "name": "siaas-cli_0.1.0_linux_arm64",
+      "bytes": 2556028,
+      "sha256": "52fc5c478afb1f6a13f67b00d5c01e5d99097030fb5d2d93f637d62f50c59712"
+    },
+    {
+      "name": "siaas-cli_0.1.0_windows_amd64.exe",
+      "bytes": 2744832,
+      "sha256": "fb01f18e7e4faf07655e55371ec6d4ed5796fb1d59e780ceed2de17a30e55b18"
+    },
+    {
+      "name": "siaas-cli_0.1.0_windows_arm64.exe",
+      "bytes": 2541056,
+      "sha256": "98fdb5876b136b3bc0a45f2f8359f334d498307a0fccf26644d02718a7c205de"
+    }
+  ]
+}
