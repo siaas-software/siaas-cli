@@ -78,7 +78,7 @@ From the repository root on Unix:
 
 ```sh
 export GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOTELEMETRY=off
-go test -count=1 -timeout=90s ./...
+go test -count=1 -timeout=8m ./...
 go vet ./...
 bash -n install.sh
 go run ./tools/build
@@ -92,7 +92,7 @@ $env:GOTOOLCHAIN='local'
 $env:GOPROXY='off'
 $env:GOSUMDB='off'
 $env:GOTELEMETRY='off'
-go test -count=1 -timeout=90s ./...
+go test -count=1 -timeout=8m ./...
 go vet ./...
 go run ./tools/build
 .\dist\siaas-cli_0.1.0_windows_amd64.exe --version --json
@@ -130,11 +130,11 @@ the same as reproducibility after timestamped platform signing.
 
 ## Install the CLI using the bootstrap
 
-**There are no published CLI releases as of the 2026-11-07 readiness review.**
+**There are no published CLI releases as of the 2026-11-08 public-security review.**
 The repository is public, and its page was accessible anonymously. Release asset
 downloads and remote bootstrap remain unverified until publication. No release,
 tag or administrative setting was created or changed for this work. See the
-[release-readiness verdict](docs/release-readiness-v0.1.0.md) and
+[current public-security verdict](docs/public-release-security-review.md) and
 [public installation instructions](docs/public-installation.md).
 
 For an offline, locally built installation from this checkout:
@@ -185,9 +185,18 @@ remove models or access application profiles. Add the chosen directory to your
 user PATH yourself, or invoke the installed executable by its path. Unix requires
 Bash, standard file utilities, `sha256sum` or `shasum`, and curl only for remote
 downloads. Windows needs PowerShell 5.1+ and a local filesystem supporting the
-required move/replace operations. Use a private directory under your own account;
+required move/replace operations and NTFS alternate data streams for remote
+Internet-origin marking. macOS remote installation additionally requires `xattr`.
+Use a private directory under your own account;
 shared-writable destinations and concurrent hostile local users are outside the
 bootstrap threat model.
+
+Remote installation marks new Windows executables with Internet Zone 3 and new
+macOS executables with quarantine, failing safely if marking is unavailable.
+Offline copies retain existing origin metadata. Identical-byte installs leave the
+existing file and its metadata unchanged. SHA-256 covers file bytes, not ACLs or
+origin metadata. These markers preserve OS assessment opportunities; they do not
+provide publisher signing or promise that the OS will allow execution.
 
 The installer locks its destination, verifies metadata, stages in that same
 directory, checks size and SHA-256, and atomically replaces where supported.
@@ -196,7 +205,7 @@ a target exists, and refuses delete-then-move fallback. Identical bytes are a
 no-op (Unix also ensures executable permissions). A replaced file is retained as
 `siaas.backup.*` / `siaas.exe.backup.*`; there is no automatic backup pruning.
 Symlink/reparse-point paths and targets, relative paths, traversal and volume
-roots are refused. Spaces and Unicode are supported by design and tested on Linux.
+roots are refused. Spaces and Unicode are covered by native offline acceptance.
 
 Installer exits: 0 installed/unchanged, 2 usage/unsupported OS or architecture,
 4 locked, 6 filesystem/metadata/integrity failure, 7 missing artifact/download or
@@ -221,8 +230,10 @@ power loss and recovery from hostile filesystem changes are not guaranteed.
 
 The [native acceptance report](docs/native-acceptance.md) links all six successful
 jobs, exact tested commit, 378 passing test/subtest events and Windows PowerShell
-versions. No real remote Release installation was tested. Hosted Windows accounts
-may be administrators; standard-user ACL/reparse-point behavior remains unverified.
+versions. No real remote Release installation was tested. The follow-up [public-security review](docs/public-release-security-review.md)
+records the latest six-platform PASS, 450 passing events including both genuine
+standard-user Windows suites, and OS-policy probes.
+Hosted administrator tests alone do not prove standard-user acceptance.
 Downloaded-file SmartScreen/Gatekeeper behavior, signing/notarization decisions
 and support for older OS versions remain outside this acceptance. No signing
 credentials, artifact uploads or paid services were introduced.
@@ -241,5 +252,12 @@ This assembles all six target binaries, `SHA256SUMS`, `cli-release-v1.txt`, both
 bootstrap scripts, `RELEASE_NOTES.md` and `GO-LICENSE.txt`. It performs no upload,
 tagging or publication. All six targets now have native offline acceptance. The
 [security review](docs/security-review.md) records fixes, trust assumptions and
-remaining release gates. **Native acceptance: READY. Public release: NOT READY
-for authorization pending the documented review/distribution decisions.**
+remaining historical release gates. The current [public-security review](docs/public-release-security-review.md)
+is authoritative for the latest candidate and distribution decision. No release
+has been published. See the [post-publication smoke and incident procedure](docs/post-publication-smoke-test.md).
+
+Current decision: **READY WITH EXPLICIT RISK ACCEPTANCE** for unsigned M1
+distribution. This acceptance has not yet been granted. Internet-marked unsigned
+PowerShell scripts can be blocked, and macOS Gatekeeper assessment rejected the
+candidates. Public downloads and interactive OS acceptance remain unverified.
+See the current security review before authorizing any release.

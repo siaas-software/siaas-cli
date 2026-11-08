@@ -29,7 +29,7 @@ condition refuses a private repository or a repository other than
 `siaas-software/siaas-cli`. There are no larger-runner labels, self-hosted runner
 groups, artifact uploads, cache actions, schedules, external signing services or
 paid integrations. Go setup caching is explicitly disabled. Jobs have read-only
-contents permission, checkout credential persistence disabled, 20-minute timeouts,
+contents permission, checkout credential persistence disabled, 30-minute timeouts (20 in the original recorded run),
 at most three matrix jobs concurrently, and cancellation of superseded runs.
 Official checkout/setup-go actions are pinned to inspected v6 commit SHAs.
 
@@ -37,7 +37,7 @@ Official checkout/setup-go actions are pinned to inspected v6 commit SHAs.
 
 - Pinned native Go compiler; both host OS and CPU architecture must match the
   matrix. Go formatting and `go vet ./...` must pass.
-- `go test -v -count=1 -timeout=5m ./...` builds the native artifact using the real
+- `go test -v -count=1 -timeout=8m ./...` (5m in the original run) builds the native artifact using the real
   release build helper, verifies its canonical manifest, SHA-256 and exact size,
   then executes CLI/help/version/error/JSON and bootstrap tests.
 - CLI execution with an empty runtime search path proves no separately installed
@@ -151,3 +151,14 @@ rulesets still need owner inspection. A real anonymous remote bootstrap is a
 post-publication verification gate, not a claimed pass. Signing is not provided
 or assumed to require paid infrastructure. PR #1 stays draft; merge, release-tag
 creation and publication require separate explicit approval.
+
+## Public-security follow-up
+
+The historical results above remain unchanged. The 2026-11-08 follow-up adds
+origin metadata preservation, default paths, Windows junction/ACL recovery tests,
+a disposable genuine non-administrator account with a loaded user profile, and
+read-only OS signing/policy probes. Windows standard-user tests have a separate
+10-minute test timeout; jobs remain bounded at 30 minutes. The workflow does not
+weaken execution policy or OS protection. See
+[public-release-security-review.md](public-release-security-review.md) for the
+new exact commits, failed attempts, completed results and release decision.

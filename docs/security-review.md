@@ -1,5 +1,7 @@
 # M1 bootstrap security review — v0.1.0 candidate
 
+Current public-distribution review and latest evidence: [2026-11-08 security review](public-release-security-review.md). The dated results below are retained unchanged.
+
 Historical pre-Actions review. Subsequent owner changes to repository protections
 and the authorized native workflow are recorded in
 [native acceptance](native-acceptance.md); use that report for current run evidence.

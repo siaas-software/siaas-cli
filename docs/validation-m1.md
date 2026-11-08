@@ -1,5 +1,7 @@
 # M1 reproducible validation report
 
+Current public-distribution review and latest evidence: [2026-11-08 security review](public-release-security-review.md). The dated results below are retained unchanged.
+
 Historical foundation validation. For the subsequent security fixes, public
 visibility check and repeated release-candidate validation, see
 [v0.1.0 release readiness](release-readiness-v0.1.0.md). Statements below about

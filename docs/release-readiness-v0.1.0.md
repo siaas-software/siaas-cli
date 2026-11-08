@@ -1,5 +1,7 @@
 # M1 release readiness — v0.1.0
 
+Current public-distribution review and latest evidence: [2026-11-08 security review](public-release-security-review.md). The dated results below are retained unchanged.
+
 Historical pre-Actions snapshot. The owner subsequently enabled branch/tag
 protections and authorized native acceptance on standard hosted runners. See
 [native acceptance](native-acceptance.md) for the later evidence and assessment;

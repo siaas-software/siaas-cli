@@ -1,0 +1,631 @@
+{
+  "date": "2026-11-08",
+  "repository": "siaas-software/siaas-cli",
+  "run_id": 42456877849,
+  "workflow_url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849",
+  "tested_commit": "751694759669c44ea71ef44313c3d6246eb45233",
+  "conclusion": "success",
+  "artifacts": [],
+  "total_pass_events": 450,
+  "scope": "Offline native tests; synthetic OS-origin and policy probes. No public release download or interactive browser/Explorer/Finder acceptance.",
+  "jobs": [
+    {
+      "id": 128657742003,
+      "name": "macos-15-intel (darwin/amd64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849/job/128657742003",
+      "pass_events": 74,
+      "failed_test_events": 0,
+      "skipped_test_events": 0,
+      "standard_user_pass_events": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify native toolchain and formatting",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Unix host and Bash syntax",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Windows PowerShell 5.1 and URI policy",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Native CLI and offline bootstrap acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Windows unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Windows genuine standard-user acceptance",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "macOS unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ],
+      "evidence": [
+        "2026-11-08T07:00:44.5803720Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_darwin_amd64; bytes=2630976; SHA256=7fa9e34caaeb123a54d1507bea1834926cb4ad1b07375f94a2a02f11bf00acc9",
+        "2026-11-08T07:00:45.4863750Z /var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T//siaas-os-security.dPIge2tX/siaas-cli_0.1.0_darwin_amd64: code object is not signed at all",
+        "2026-11-08T07:00:45.4867790Z OS_SECURITY codesign inspection exit=1",
+        "2026-11-08T07:00:45.5006300Z assessments enabled",
+        "2026-11-08T07:00:45.5010660Z OS_SECURITY Gatekeeper status exit=0",
+        "2026-11-08T07:00:45.5871170Z OS_SECURITY Gatekeeper assessment exit=3",
+        "2026-11-08T07:00:45.5872990Z OS_SECURITY quarantine retained and SHA256 unchanged; quarantined executable not launched.",
+        "2026-11-08T07:00:45.5874250Z OS_SECURITY browser/Finder launch and notarized distribution acceptance=UNVERIFIED."
+      ]
+    },
+    {
+      "id": 128657742146,
+      "name": "windows-2022 (windows/amd64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849/job/128657742146",
+      "pass_events": 78,
+      "failed_test_events": 0,
+      "skipped_test_events": 0,
+      "standard_user_pass_events": 27,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify native toolchain and formatting",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Unix host and Bash syntax",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Windows PowerShell 5.1 and URI policy",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Native CLI and offline bootstrap acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Windows unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Windows genuine standard-user acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "macOS unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ],
+      "evidence": [
+        "2026-11-08T07:00:06.9207473Z     install_windows_test.go:27: Windows PowerShell 5.1.20348.5773 Desktop",
+        "2026-11-08T07:00:06.9209445Z     install_windows_test.go:74: Running executable replacement exit=0: Installed SIAAS CLI 0.1.0. Previous executable retained as siaas.exe.backup.*.",
+        "2026-11-08T07:00:06.9230917Z     security_windows_test.go:47: Default installation validated at C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\TestWindowsDefaultPath1421259268\\002\\SIAAS CLI\\bin; genuine standard-user context=",
+        "2026-11-08T07:00:06.9237631Z     security_windows_test.go:111: Denied-write ACL preserved old CLI; restoring only the fixture ACL allowed recovery.",
+        "2026-11-08T07:00:06.9239734Z     security_windows_test.go:130: Internet-origin ADS retained on first install and replacement; marked executable was not launched.",
+        "2026-11-08T07:00:06.9243411Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_windows_amd64.exe; bytes=2744832; SHA256=fb01f18e7e4faf07655e55371ec6d4ed5796fb1d59e780ceed2de17a30e55b18",
+        "2026-11-08T07:00:08.5483406Z OS_SECURITY Authenticode=NotSigned; ZoneId=3; SHA256 unchanged",
+        "2026-11-08T07:00:08.5610916Z  LocalMachine    Unrestricted",
+        "2026-11-08T07:00:08.7426931Z OS_SECURITY Internet-marked unsigned script: policy=Unrestricted; probe exit=1",
+        "2026-11-08T07:00:08.7854692Z OS_SECURITY unsigned Internet script blocked as expected; no unblock or policy downgrade performed.",
+        "2026-11-08T07:00:08.7855476Z OS_SECURITY SmartScreen interactive/browser download verdict=UNVERIFIED; marked executable was not launched.",
+        "2026-11-08T07:00:57.9435226Z STANDARD_USER identity=runnervmquqza\\siaas98f9bc2af2 SID=S-1-5-21-3708201392-4242277230-667464164-1003 AdministratorsMember=False",
+        "2026-11-08T07:00:57.9436771Z STANDARD_USER USERPROFILE=C:\\Users\\siaas98f9bc2af2 LOCALAPPDATA=C:\\Users\\siaas98f9bc2af2\\AppData\\Local",
+        "2026-11-08T07:00:57.9443616Z  LocalMachine    Unrestricted",
+        "2026-11-08T07:00:57.9445782Z     install_windows_test.go:27: Windows PowerShell 5.1.20348.5773 Desktop",
+        "2026-11-08T07:00:57.9450386Z     install_windows_test.go:74: Running executable replacement exit=0: Installed SIAAS CLI 0.1.0. Previous executable retained as siaas.exe.backup.*.",
+        "2026-11-08T07:00:57.9488020Z     security_windows_test.go:47: Default installation validated at C:\\Users\\siaas98f9bc2af2\\AppData\\Local\\SIAAS CLI\\bin; genuine standard-user context=1",
+        "2026-11-08T07:00:57.9498000Z     security_windows_test.go:111: Denied-write ACL preserved old CLI; restoring only the fixture ACL allowed recovery.",
+        "2026-11-08T07:00:57.9500397Z     security_windows_test.go:130: Internet-origin ADS retained on first install and replacement; marked executable was not launched.",
+        "2026-11-08T07:00:57.9504710Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_windows_amd64.exe; bytes=2744832; SHA256=fb01f18e7e4faf07655e55371ec6d4ed5796fb1d59e780ceed2de17a30e55b18",
+        "2026-11-08T07:00:57.9511986Z STANDARD_USER_ACCEPTANCE=PASS"
+      ]
+    },
+    {
+      "id": 128657742265,
+      "name": "ubuntu-24.04-arm (linux/arm64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849/job/128657742265",
+      "pass_events": 73,
+      "failed_test_events": 0,
+      "skipped_test_events": 0,
+      "standard_user_pass_events": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify native toolchain and formatting",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Unix host and Bash syntax",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Windows PowerShell 5.1 and URI policy",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Native CLI and offline bootstrap acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Windows unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Windows genuine standard-user acceptance",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "macOS unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ],
+      "evidence": [
+        "2026-11-08T06:59:24.6023310Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_linux_arm64; bytes=2556028; SHA256=52fc5c478afb1f6a13f67b00d5c01e5d99097030fb5d2d93f637d62f50c59712"
+      ]
+    },
+    {
+      "id": 128657742270,
+      "name": "ubuntu-24.04 (linux/amd64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849/job/128657742270",
+      "pass_events": 73,
+      "failed_test_events": 0,
+      "skipped_test_events": 0,
+      "standard_user_pass_events": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify native toolchain and formatting",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Unix host and Bash syntax",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Windows PowerShell 5.1 and URI policy",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Native CLI and offline bootstrap acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Windows unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Windows genuine standard-user acceptance",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "macOS unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ],
+      "evidence": [
+        "2026-11-08T06:59:23.4863855Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_linux_amd64; bytes=2580604; SHA256=1d1295d05d04bc43c5f2ca4d6a0881e656062db712125f08b4cf8e2b17fed1b0"
+      ]
+    },
+    {
+      "id": 128657742276,
+      "name": "windows-11-arm (windows/arm64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849/job/128657742276",
+      "pass_events": 78,
+      "failed_test_events": 0,
+      "skipped_test_events": 0,
+      "standard_user_pass_events": 27,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify native toolchain and formatting",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Unix host and Bash syntax",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Windows PowerShell 5.1 and URI policy",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Native CLI and offline bootstrap acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Windows unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Windows genuine standard-user acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "macOS unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10
+        },
+        {
+          "name": "Post Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ],
+      "evidence": [
+        "2026-11-08T07:08:48.9575327Z     install_windows_test.go:27: Windows PowerShell 5.1.26100.9711 Desktop",
+        "2026-11-08T07:08:48.9577335Z     install_windows_test.go:74: Running executable replacement exit=0: Installed SIAAS CLI 0.1.0. Previous executable retained as siaas.exe.backup.*.",
+        "2026-11-08T07:08:48.9594519Z     security_windows_test.go:47: Default installation validated at C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\TestWindowsDefaultPath3366889289\\002\\SIAAS CLI\\bin; genuine standard-user context=",
+        "2026-11-08T07:08:48.9600118Z     security_windows_test.go:111: Denied-write ACL preserved old CLI; restoring only the fixture ACL allowed recovery.",
+        "2026-11-08T07:08:48.9602130Z     security_windows_test.go:130: Internet-origin ADS retained on first install and replacement; marked executable was not launched.",
+        "2026-11-08T07:08:48.9604983Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_windows_arm64.exe; bytes=2541056; SHA256=98fdb5876b136b3bc0a45f2f8359f334d498307a0fccf26644d02718a7c205de",
+        "2026-11-08T07:09:12.7216515Z OS_SECURITY Authenticode=NotSigned; ZoneId=3; SHA256 unchanged",
+        "2026-11-08T07:09:12.7360767Z  LocalMachine    Unrestricted",
+        "2026-11-08T07:09:13.1283346Z OS_SECURITY Internet-marked unsigned script: policy=Unrestricted; probe exit=1",
+        "2026-11-08T07:09:13.1887416Z OS_SECURITY unsigned Internet script blocked as expected; no unblock or policy downgrade performed.",
+        "2026-11-08T07:09:13.1889851Z OS_SECURITY SmartScreen interactive/browser download verdict=UNVERIFIED; marked executable was not launched.",
+        "2026-11-08T07:10:31.9880409Z STANDARD_USER identity=runnervmjknx9\\siaas15b9f297ba SID=S-1-5-21-2059143792-918228121-4054068362-1001 AdministratorsMember=False",
+        "2026-11-08T07:10:31.9881308Z STANDARD_USER USERPROFILE=C:\\Users\\siaas15b9f297ba LOCALAPPDATA=C:\\Users\\siaas15b9f297ba\\AppData\\Local",
+        "2026-11-08T07:10:31.9890868Z  LocalMachine    Unrestricted",
+        "2026-11-08T07:10:31.9895487Z     install_windows_test.go:27: Windows PowerShell 5.1.26100.9711 Desktop",
+        "2026-11-08T07:10:31.9899113Z     install_windows_test.go:74: Running executable replacement exit=0: Installed SIAAS CLI 0.1.0. Previous executable retained as siaas.exe.backup.*.",
+        "2026-11-08T07:10:32.0003907Z     security_windows_test.go:47: Default installation validated at C:\\Users\\siaas15b9f297ba\\AppData\\Local\\SIAAS CLI\\bin; genuine standard-user context=1",
+        "2026-11-08T07:10:32.0008460Z     security_windows_test.go:111: Denied-write ACL preserved old CLI; restoring only the fixture ACL allowed recovery.",
+        "2026-11-08T07:10:32.0010156Z     security_windows_test.go:130: Internet-origin ADS retained on first install and replacement; marked executable was not launched.",
+        "2026-11-08T07:10:32.0012797Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_windows_arm64.exe; bytes=2541056; SHA256=98fdb5876b136b3bc0a45f2f8359f334d498307a0fccf26644d02718a7c205de",
+        "2026-11-08T07:10:32.0015410Z STANDARD_USER_ACCEPTANCE=PASS"
+      ]
+    },
+    {
+      "id": 128657742292,
+      "name": "macos-15 (darwin/arm64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/siaas-software/siaas-cli/actions/runs/42456877849/job/128657742292",
+      "pass_events": 74,
+      "failed_test_events": 0,
+      "skipped_test_events": 0,
+      "standard_user_pass_events": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify native toolchain and formatting",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Unix host and Bash syntax",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Windows PowerShell 5.1 and URI policy",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Native CLI and offline bootstrap acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Windows unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Windows genuine standard-user acceptance",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "macOS unsigned distribution policy probes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Install pinned native Go compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Checkout reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ],
+      "evidence": [
+        "2026-11-08T07:01:35.9669390Z     standalone_test.go:86: Verified native release: siaas-cli_0.1.0_darwin_arm64; bytes=2494818; SHA256=e8635ce6f6acccc502a72a74edba588c90ea2e38707c7a335b1bb3abd0bee844",
+        "2026-11-08T07:01:36.5198810Z Signature=adhoc",
+        "2026-11-08T07:01:36.5200370Z OS_SECURITY codesign inspection exit=0",
+        "2026-11-08T07:01:36.5293330Z assessments enabled",
+        "2026-11-08T07:01:36.5294540Z OS_SECURITY Gatekeeper status exit=0",
+        "2026-11-08T07:01:36.7939820Z OS_SECURITY Gatekeeper assessment exit=3",
+        "2026-11-08T07:01:36.7940510Z OS_SECURITY quarantine retained and SHA256 unchanged; quarantined executable not launched.",
+        "2026-11-08T07:01:36.7942500Z OS_SECURITY browser/Finder launch and notarized distribution acceptance=UNVERIFIED."
+      ]
+    }
+  ]
+}

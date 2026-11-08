@@ -79,6 +79,19 @@ prove failures preserve an existing executable and unrelated data.
 5. Verify public visibility, final metadata/artifact agreement and remote bootstrap
    independently. Do not call an artifact available based on a constructed URL.
 
-M1 creates no release, tag, workflow, hosting service or publication automation.
+M1 creates no release, tag, hosting service or publication automation. The separately
+owner-authorized native acceptance workflow runs offline tests on free standard runners.
 Failure to find a CLI release is an actionable installer error (7), not a reason
 to install SIAAS Personal or require a product version.
+
+## OS origin metadata (security correction, same v1 byte contract)
+
+Remote candidates are marked as Internet-sourced before commit: Windows NTFS
+`Zone.Identifier` ZoneId 3, macOS `com.apple.quarantine`. Failure to retain the
+marker aborts installation (6; missing macOS xattr utility is 7). Offline copies
+preserve existing origin metadata; identical-byte installs preserve the existing
+file. SHA-256 and byte counts remain unchanged and do not attest ACLs or extended
+attributes. This correction preserves CLI arguments, canonical asset names and
+manifest v1 while allowing normal OS policy to assess downloaded executables.
+No publisher signature or notarization is asserted. See the current public
+security review before representing these unsigned assets as generally usable.

@@ -1,6 +1,6 @@
 # Public CLI bootstrap installation
 
-Status on 2026-11-07: repository public; **v0.1.0 is not published**. No working
+Status on 2026-11-08: repository public; **v0.1.0 is not published**. No working
 release download or remote install is claimed. The following is the reviewed
 installation procedure **for use after separately authorized publication**.
 
@@ -29,7 +29,11 @@ installation procedure **for use after separately authorized publication**.
    script, obtain an organization-approved execution method; do not bypass TLS,
    PowerShell policy, antivirus or Gatekeeper. Windows/macOS native offline
    acceptance now passes on the [recorded hosted runners](native-acceptance.md);
-   downloaded-file OS policy and remote installation remain unverified.
+   the current [public-security review](public-release-security-review.md) records
+   synthetic origin/policy probes. Browser-downloaded execution and live remote
+   installation remain unverified. Unsigned scripts marked as Internet-sourced
+   are expected to be refused under RemoteSigned; Restricted refuses scripts.
+   macOS assessment can reject unsigned/not-notarized executables.
 
 No application version argument, administrator rights or separately installed
 Node.js/npm/Electron/Docker/Ollama/Go is required. Bash/curl and standard Unix
@@ -75,3 +79,10 @@ upload the complete asset inventory and check metadata. After separately approve
 publication, an operator must verify the manifest and each asset without login,
 then run native remote bootstraps with no tokens and normal certificate validation.
 Those network checks cannot be passed in advance while assets do not exist.
+
+Remote Windows installation requires NTFS alternate-stream support; remote macOS
+installation requires `xattr` and extended-attribute support. The installers mark
+new remote candidates with Internet Zone 3 / quarantine and fail closed if this
+cannot be done. They never clear OS origin metadata. Offline metadata preservation
+is tested separately; identical-byte installation does not rewrite existing
+metadata. See the [smoke-test and incident procedure](post-publication-smoke-test.md).
