@@ -25,7 +25,7 @@ if ($Child) {
     Write-Output "STANDARD_USER USERPROFILE=$env:USERPROFILE LOCALAPPDATA=$env:LOCALAPPDATA"
     Get-ExecutionPolicy -List | Format-Table
     Set-Location -LiteralPath (Join-Path $config.Repository 'tests')
-    & $config.TestBinary -test.v -test.timeout=10m
+    & $config.TestBinary '-test.v' '-test.timeout=10m'
     if ($LASTEXITCODE -ne 0) { throw "Standard-user acceptance failed (exit $LASTEXITCODE)." }
     Write-Output 'STANDARD_USER_ACCEPTANCE=PASS'
     exit 0
@@ -74,6 +74,8 @@ try {
     $childScript = Join-Path $repository 'tests\windows-standard-user.ps1'
     $arguments = '-NoProfile -NonInteractive -File "' + $childScript + '" -Child -ConfigPath "' + $configFile + '"'
     $childProcess = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $arguments -Credential $credential -LoadUserProfile -WorkingDirectory $repository -PassThru -RedirectStandardOutput (Join-Path $logs 'stdout.txt') -RedirectStandardError (Join-Path $logs 'stderr.txt')
+    # Retain the native process handle before exit so .NET can retrieve its code.
+    $null = $childProcess.Handle
     if (-not $childProcess.WaitForExit(720000)) { $childProcess.Kill(); throw 'Standard-user process timed out.' }
     $childProcess.WaitForExit()
     Get-Content -LiteralPath (Join-Path $logs 'stdout.txt')

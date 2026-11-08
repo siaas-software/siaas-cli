@@ -38,6 +38,7 @@ try {
     $ErrorActionPreference = $savedErrorPreference
     Write-Output "OS_SECURITY Internet-marked unsigned script: policy=$policy; probe exit=$code"
     if ($code -eq 0) { throw 'Internet-marked unsigned script unexpectedly executed; policy acceptance is unverified.' }
+    if (($result | Out-String) -notmatch 'PSSecurityException|UnauthorizedAccess|not digitally signed|running scripts is disabled') { throw 'The negative probe failed for an unexpected reason, not a recognized script-policy refusal.' }
     Write-Output 'OS_SECURITY unsigned Internet script blocked as expected; no unblock or policy downgrade performed.'
     Write-Output 'OS_SECURITY SmartScreen interactive/browser download verdict=UNVERIFIED; marked executable was not launched.'
 } finally {
