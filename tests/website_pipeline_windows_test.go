@@ -69,7 +69,11 @@ func TestWebsitePowerShellPipeline(t *testing.T) {
 			run := func() (int, string) {
 				ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 				defer cancel()
-				cmd := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", pipelineSetup)
+				code := pipelineSetup
+				if mode != "endpoint-unavailable" {
+					code += "\nWrite-Output 'PIPELINE_RETURNED'; exit 99"
+				}
+				cmd := exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", code)
 				cmd.Env = append(os.Environ(), "SIAAS_TEST_FIXTURE="+source, "SIAAS_TEST_ENDPOINT="+server.URL+"/cli/install.ps1", "SIAAS_TEST_MODE="+mode, "SIAAS_CLI_INSTALL_DIR="+dir)
 				out, e := cmd.CombinedOutput()
 				if e == nil {
@@ -190,6 +194,4 @@ public sealed class SiaasAuditResponse : WebResponse {
 if (-not [Net.WebRequest]::RegisterPrefix('https://github.com/siaas-software/siaas-cli/releases/',(New-Object SiaasAuditFactory))) { throw 'Cannot register isolated release fixture.' }
 # The real website command form; no file invocation, arguments or policy bypass.
 irm $env:SIAAS_TEST_ENDPOINT | iex
-if ($env:SIAAS_TEST_MODE -ne 'endpoint-unavailable') { Write-Output 'PIPELINE_RETURNED'; exit 99 }
-exit 1
 `
