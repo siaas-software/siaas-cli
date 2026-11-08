@@ -44,3 +44,6 @@ try {
     if ($savedPolicyOverride) { $env:PSExecutionPolicyPreference = $savedPolicyOverride }
     if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 }
+# The negative policy probe intentionally returned nonzero; do not leak its
+# LASTEXITCODE through the Actions PowerShell wrapper after all assertions pass.
+exit 0
