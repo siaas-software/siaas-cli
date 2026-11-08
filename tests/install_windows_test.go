@@ -187,7 +187,10 @@ func winInstall(t *testing.T, dir, source string, args ...string) (int, string) 
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	all := []string{"-NoProfile", "-NonInteractive", "-File", filepath.Join(root, "install.ps1"), "-InstallDir", dir, "-FromDir", source}
+	all := []string{"-NoProfile", "-NonInteractive", "-File", filepath.Join(root, "install.ps1"), "-FromDir", source}
+	if dir != "" {
+		all = append(all, "-InstallDir", dir)
+	}
 	all = append(all, args...)
 	cmd := exec.CommandContext(ctx, shell, all...)
 	cmd.Env = append(os.Environ(), "SIAAS_TOKEN=environment-secret-sentinel")

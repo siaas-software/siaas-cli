@@ -121,6 +121,10 @@ done < <(tail -n +2 "$stage/manifest")
 [[ "$bytes" -le 100000000 ]] || fail 6 'CLI artifact is unexpectedly large.'
 get "$artifact" "$stage/candidate" "$bytes" "$base/download/v$version/$artifact"
 [[ $(wc -c < "$stage/candidate") -eq "$bytes" && "$(hash "$stage/candidate")" == "$expected" ]] || fail 6 'Artifact checksum/size verification failed. Existing CLI preserved; obtain a fresh verified release.'
+if [[ "$platform" == darwin && -z "$fixture" ]]; then
+  command -v xattr >/dev/null 2>&1 || fail 7 'macOS Internet downloads require xattr to retain quarantine metadata.'
+  xattr -w com.apple.quarantine "0081;$(printf '%x' "$(date +%s)");SIAAS CLI;" "$stage/candidate" 2>/dev/null || fail 6 'Cannot retain macOS quarantine metadata. Choose a private filesystem supporting extended attributes.'
+fi
 if [[ -f "$target" && "$(hash "$target")" == "$expected" && -x "$target" ]]; then
   printf '%s\n' 'SIAAS CLI is already installed with identical verified bytes.'; exit 0
 fi

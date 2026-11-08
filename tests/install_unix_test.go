@@ -97,6 +97,26 @@ func TestUnixInstallRepeatAndReplacement(t *testing.T) {
 		t.Fatalf("owned staging leaked: %v", stages)
 	}
 }
+
+func TestUnixDefaultPathAndPermissions(t *testing.T) {
+	source, _ := fixture(t)
+	home := t.TempDir()
+	cmd := exec.Command("/bin/bash", filepath.Join(root, "install.sh"), "--from-dir", source)
+	cmd.Env = append(os.Environ(), "HOME="+home, "SIAAS_CLI_INSTALL_DIR=")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("default path: %s %v", out, err)
+	}
+	target := filepath.Join(home, ".local", "bin", "siaas")
+	file, err := os.Stat(target)
+	if err != nil || file.Mode().Perm() != 0755 {
+		t.Fatalf("executable mode: %v %v", file, err)
+	}
+	dir, err := os.Stat(filepath.Dir(target))
+	if err != nil || dir.Mode().Perm() != 0700 {
+		t.Fatalf("private directory mode: %v %v", dir, err)
+	}
+	t.Log("Default ~/.local/bin installation: executable 0755; new directory 0700.")
+}
 func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
 	for _, mode := range []string{"corruption", "truncated", "oversized binary", "oversized manifest", "missing binary", "missing manifest", "wrong schema", "wrong version", "missing platform", "duplicate platform", "duplicate other platform", "traversal", "invalid hash", "symlink artifact"} {
 		t.Run(mode, func(t *testing.T) {

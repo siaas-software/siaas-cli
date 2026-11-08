@@ -18,7 +18,7 @@ jobs:
     if: github.repository == 'siaas-software/siaas-cli' && github.event.repository.private == false
     name: ${{ matrix.runner }} (${{ matrix.goos }}/${{ matrix.goarch }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -102,4 +102,15 @@ jobs:
           "PROCESSOR_ARCHITECTURE=$env:PROCESSOR_ARCHITECTURE"
           & ./tests/powershell-policy.ps1
       - name: Native CLI and offline bootstrap acceptance
-        run: go test -v -count=1 -timeout=5m ./...
+        run: go test -v -count=1 -timeout=8m ./...
+      - name: Windows unsigned distribution policy probes
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tests/windows-os-security.ps1
+      - name: Windows genuine standard-user acceptance
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tests/windows-standard-user.ps1
+      - name: macOS unsigned distribution policy probes
+        if: runner.os == 'macOS'
+        run: bash tests/macos-os-security.sh

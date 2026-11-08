@@ -17,6 +17,19 @@ function Test-TrustedReleaseUri([Uri]$Uri) {
         $Uri.OriginalString -notmatch '[\s\x00-\x1f\x7f\\#]' -and $Uri.Scheme -eq 'https' -and $Uri.Port -eq 443 -and -not $Uri.UserInfo -and -not $Uri.Fragment -and
         $Uri.Host -in @('github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'))
 }
+function Assert-NoReparsePoint([string]$Path) {
+    # GetAttributes inspects dangling reparse entries too; Exists follows targets.
+    try { $attributes = [IO.File]::GetAttributes($Path) }
+    catch [IO.FileNotFoundException] { return }
+    catch [IO.DirectoryNotFoundException] { return }
+    if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { Fail 6 'Reparse-point install paths are refused. Choose a private real directory.' }
+}
+function Set-InternetZone([string]$Path) {
+    # Raw HTTP streams do not automatically attach Mark-of-the-Web. Do not lose
+    # the OS's opportunity to assess a new Internet-sourced executable.
+    try { [IO.File]::WriteAllText($Path + ':Zone.Identifier', "[ZoneTransfer]`r`nZoneId=3`r`n") }
+    catch { Fail 6 'Cannot retain Internet-origin security metadata. Use a private local filesystem supporting NTFS alternate streams.' }
+}
 function Get-Artifact([string]$Name, [string]$Destination, [long]$Limit, [string]$URL) {
     if ($FromDir) {
         $source = [IO.Path]::Combine($FromDir, $Name)
@@ -103,9 +116,7 @@ try {
         if ($InstallDir.Length -le 3) { Fail 2 'Installing at a volume root is refused.' }
         $cursor = $InstallDir
         while ($cursor) {
-            if ([IO.Directory]::Exists($cursor) -or [IO.File]::Exists($cursor)) {
-                if (([IO.File]::GetAttributes($cursor) -band [IO.FileAttributes]::ReparsePoint) -ne 0) { Fail 6 'Reparse-point install paths are refused. Choose a private real directory.' }
-            }
+            Assert-NoReparsePoint $cursor
             $parent = [IO.Directory]::GetParent($cursor)
             $cursor = if ($parent) { $parent.FullName } else { $null }
         }
@@ -117,7 +128,7 @@ try {
         [void][IO.Directory]::CreateDirectory($stage)
         $target = [IO.Path]::Combine($InstallDir, 'siaas.exe')
         if ([IO.Directory]::Exists($target)) { Fail 6 'Existing siaas.exe is a directory. Inspect it without deleting application data.' }
-        if ([IO.File]::Exists($target) -and (([IO.File]::GetAttributes($target) -band [IO.FileAttributes]::ReparsePoint) -ne 0)) { Fail 6 'Existing siaas.exe is a reparse point. Choose a regular file location.' }
+        Assert-NoReparsePoint $target
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $base = 'https://github.com/siaas-software/siaas-cli/releases'
         $manifest = [IO.Path]::Combine($stage, 'manifest')
@@ -143,6 +154,7 @@ try {
         $candidate = [IO.Path]::Combine($stage, 'candidate.exe')
         Get-Artifact $artifact $candidate $bytes "$base/download/v$version/$artifact"
         if (([IO.FileInfo]$candidate).Length -ne $bytes -or (Get-FileHash -LiteralPath $candidate -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expected) { Fail 6 'Artifact checksum/size verification failed. Existing CLI preserved; obtain a fresh verified release.' }
+        if (-not $FromDir) { Set-InternetZone $candidate }
         if ([IO.File]::Exists($target) -and (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() -ceq $expected) {
             Write-Output 'SIAAS CLI is already installed with identical verified bytes.'
         } elseif ([IO.File]::Exists($target)) {

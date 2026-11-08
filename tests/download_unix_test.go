@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -100,6 +101,12 @@ fi
 				old, _ := os.ReadFile(filepath.Join(dir, "siaas"))
 				if string(old) != "old CLI" {
 					t.Fatal("failed download replaced CLI")
+				}
+			}
+			if tc.code == 0 && runtime.GOOS == "darwin" {
+				q, err := exec.Command("/usr/bin/xattr", "-p", "com.apple.quarantine", filepath.Join(dir, "siaas")).CombinedOutput()
+				if err != nil || !strings.HasPrefix(string(q), "0081;") {
+					t.Fatalf("Internet quarantine missing: %s %v", q, err)
 				}
 			}
 			stages, _ := filepath.Glob(filepath.Join(dir, ".siaas-cli-*"))
