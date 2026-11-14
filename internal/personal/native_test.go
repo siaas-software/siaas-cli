@@ -147,7 +147,16 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 		}
 		return &Report{Version: version, Channel: "candidate", Compatible: true, source: data, runtimeSpec: m}
 	}
-	logPath := filepath.Join(os.Getenv("SIAAS_M2_EVIDENCE_ROOT"), "engine-real.log")
+	// Optional evidence directory; absent one, retain the native log only in
+	// this test's disposable area rather than writing into the checkout.
+	evidenceRoot := os.Getenv("SIAAS_M2_EVIDENCE_ROOT")
+	if evidenceRoot == "" {
+		evidenceRoot = t.TempDir()
+	}
+	if e := os.MkdirAll(evidenceRoot, 0700); e != nil {
+		t.Fatal(e)
+	}
+	logPath := filepath.Join(evidenceRoot, "engine-real.log")
 	log, e := os.Create(logPath)
 	if e != nil {
 		t.Fatal(e)
