@@ -2,8 +2,10 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"github.com/siaas-software/siaas-cli/internal/personal"
 	"strings"
 	"testing"
 )
@@ -21,9 +23,9 @@ func TestContract(t *testing.T) {
 		{"conflict", []string{"--help", "--version"}, 2, "", "invalid_usage"},
 		{"extra help", []string{"help", "personal"}, 2, "", "invalid_usage"},
 		{"duplicate JSON", []string{"--json", "--json"}, 2, "", "invalid_usage"},
-		{"future install", []string{"install", "personal"}, 3, "install", "not_implemented"},
-		{"future pin", []string{"install", "personal", "--version", "1.0.0"}, 3, "install", "not_implemented"},
-		{"future help", []string{"install", "personal", "--help"}, 3, "install", "not_implemented"},
+		{"future install", []string{"install", "personal"}, 3, "install", "unsupported_capability"},
+		{"future pin", []string{"install", "personal", "--version", "1.0.0"}, 3, "install", "unsupported_capability"},
+		{"future help", []string{"install", "personal", "--help"}, 2, "install", "invalid_usage"},
 	}
 	for _, verb := range []string{"update", "rollback", "uninstall", "start", "stop", "restart", "status", "doctor", "list"} {
 		cases = append(cases, struct {
@@ -31,7 +33,7 @@ func TestContract(t *testing.T) {
 			args             []string
 			exit             int
 			command, problem string
-		}{verb, []string{verb, "personal"}, 3, verb, "not_implemented"})
+		}{verb, []string{verb, "personal"}, 3, verb, map[bool]string{true: "unsupported_capability", false: "not_implemented"}[verb == "update" || verb == "rollback" || verb == "uninstall"]})
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -96,5 +98,53 @@ func TestOutputFailure(t *testing.T) {
 		if Run(args, brokenWriter{}, brokenWriter{}) != 1 {
 			t.Fatal("output failure must exit 1")
 		}
+	}
+}
+
+func TestPersonalChecksAndNoMutation(t *testing.T) {
+	for _, tc := range []struct {
+		args  []string
+		exit  int
+		calls int
+	}{
+		{[]string{"install", "personal", "--check", "--rc"}, 0, 1},
+		{[]string{"update", "personal", "--dry-run", "--version", "1.1.0-rc.3"}, 3, 1},
+		{[]string{"install", "personal", "--yes"}, 3, 0},
+		{[]string{"update", "personal"}, 3, 0},
+		{[]string{"uninstall", "personal"}, 3, 0},
+		{[]string{"uninstall", "personal", "--purge"}, 2, 0},
+		{[]string{"install", "personal", "--check", "--yes"}, 2, 0},
+	} {
+		var out, diagnostic bytes.Buffer
+		calls := 0
+		code := run(append([]string{"--json"}, tc.args...), &out, &diagnostic, func(ctx context.Context, s personal.Selection) (*personal.Report, error) {
+			calls++
+			if s.Channel != "candidate" {
+				t.Fatalf("wrong selector %+v", s)
+			}
+			if _, ok := ctx.Deadline(); !ok {
+				t.Fatal("unbounded lookup")
+			}
+			return &personal.Report{Version: "1.1.0-rc.3", SourceVerified: true, Compatible: false, Blocker: "unsupported_capability"}, nil
+		})
+		if code != tc.exit || calls != tc.calls || diagnostic.Len() != 0 {
+			t.Fatalf("%v code=%d calls=%d err=%s", tc.args, code, calls, diagnostic.String())
+		}
+		var r Result
+		if err := json.Unmarshal(out.Bytes(), &r); err != nil {
+			t.Fatal(err)
+		}
+		if tc.calls > 0 && (r.Personal == nil || r.Personal.Compatible) {
+			t.Fatal("false compatibility")
+		}
+	}
+}
+func TestReadOnlyErrorRedaction(t *testing.T) {
+	var out, diagnostic bytes.Buffer
+	code := run([]string{"install", "personal", "--check", "--json"}, &out, &diagnostic, func(context.Context, personal.Selection) (*personal.Report, error) {
+		return nil, errors.New("private-secret")
+	})
+	if code != 4 || strings.Contains(out.String()+diagnostic.String(), "private-secret") {
+		t.Fatal("unredacted error")
 	}
 }
