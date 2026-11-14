@@ -1,9 +1,15 @@
+> Linux backend native lifecycle evidence: [successful cycle and limits](docs/m2-native-success.md).
+> Public CLI install/update acceptance still requires a compatible release.
+
+> Earlier blocked attempt: [historical first-party M2 report](docs/m2-working-lifecycle.md).
+
 # SIAAS CLI
 
 A standalone, local command-line application that will manage SIAAS products.
 This repository is independent of `siaas-personal`. **M1 implements only the
 CLI foundation and installation of the CLI itself.** It does not install, start,
-stop, update or inspect SIAAS Personal or any other product.
+stop, update or inspect local Personal installations. This branch adds read-only
+verification of published Personal source releases; it does not complete M2.
 
 End users run one executable. **Node.js, npm, Electron, Docker, Ollama and Go are
 not runtime prerequisites.** Developers use Go to build and test it.
@@ -16,20 +22,26 @@ siaas help
 siaas --version
 siaas --version --json
 siaas --help --json
+siaas install personal --check
+siaas install personal --rc --check
+siaas install personal --version 1.1.0-rc.3 --check --json
 ```
 
 No arguments displays help. `--json` may precede or follow the command. Duplicate
 `--json`, unknown options, ambiguous combinations and unsupported commands fail.
 Arguments are never echoed in errors, avoiding accidental disclosure of tokens,
-credential-bearing URLs and private paths. No command reads credentials, opens a
-network connection, creates configuration or changes application data.
+credential-bearing URLs and private paths. Release checks contact fixed public
+GitHub HTTPS endpoints and verify source archives in bounded memory. They do not
+extract or execute source, provision Node, inspect profiles or write installations.
+No token, alternate publisher or endpoint override is accepted.
 
 | Exit | Meaning |
 | --- | --- |
-| 0 | Help or version successfully written |
+| 0 | Help/version or read-only release verification completed; not installation success |
 | 1 | Output/internal failure |
 | 2 | Invalid usage / unknown command or options |
-| 3 | Recognized future product command is not implemented |
+| 3 | Unsupported lifecycle capability or reserved command |
+| 4 | Release, network or integrity verification failed |
 
 These codes describe completed invocations. OS signals or a closed output pipe
 can terminate a process before it writes a result.
@@ -44,8 +56,10 @@ notice; `--version` remains short.
 {"schemaVersion":1,"ok":true,"command":"version","version":"0.1.0","message":"siaas 0.1.0"}
 ```
 
-Future commands are reserved and currently return exit **3**, including when
-additional arguments or `--help` follow them:
+Mutating Personal commands validate their options and then return exit **3**
+(`unsupported_capability`); invalid options return **2**. `--yes` cannot bypass
+the missing backend. `--purge` is explicitly rejected. Other lifecycle commands
+remain reserved:
 
 ```text
 siaas install personal
@@ -63,7 +77,14 @@ siaas list
 
 They do not report success or perform partial lifecycle operations. The intended
 [product manifest/API contract](docs/product-manifest-contract.md) is documentation
-only, not a product client or a dependency on the Personal repository.
+only. The source-release verifier does not implement that future execution contract.
+
+A successful `--check` includes `personal.compatible: false` and
+`runtimeProvisioned: false`; it is not an update applicability check. `--dry-run`
+verifies the same release but returns exit 3 because execution is unavailable.
+Latest-channel lookup selects the highest stable/RC version without silently
+falling back. Future compatible-release negotiation is still blocked. See the
+[implementation and acceptance report](docs/m2-lifecycle-progress.md).
 
 ## Develop and validate locally
 
