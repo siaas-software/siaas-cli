@@ -42,7 +42,7 @@ func TestParseRejectsUnsafeAndAmbiguous(t *testing.T) {
 		{"install", "personal", "--version", "1.2.3-rc.00"},
 		{"install", "personal", "--version", "01.2.3"},
 		{"rollback", "personal", "--version", "1.0.0"},
-		{"uninstall", "personal", "--rc"},
+
 		{"install", "personal", "--purge"},
 		{"uninstall", "personal", "--check"},
 		{"rollback", "personal", "--check"},

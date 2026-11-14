@@ -1,3 +1,7 @@
+> Historical PR4 snapshot. The revised November 14 first-party model and current
+> integration evidence are in [the current report](m2-working-lifecycle.md).
+> Its namespace/Adapter prerequisites below are superseded for official M2 builds.
+
 # M2 lifecycle implementation and acceptance
 
 Verdict: **NO-GO for complete M2**. This work delivers real read-only source-release

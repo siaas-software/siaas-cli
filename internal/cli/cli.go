@@ -32,8 +32,8 @@ Personal release verification (read-only):
   update personal --check [--rc | --version VERSION]
   --dry-run performs the same verification but fails if execution is unavailable.
 Checks verify published source integrity, not installation compatibility or updates
-to local state. Current releases have no accepted lifecycle adapter. Mutating
-install/update/rollback/uninstall requests fail closed; --yes cannot override this.
+to local state. Current published releases have no first-party M2 entry point. Future verified
+Linux x64 first-party install/update/uninstall requires --yes. Rollback is unsupported.
 No legacy adoption, GUI startup, profile access or --purge is performed.
 No Node.js, npm, Electron, Docker or Ollama installation is needed to run this CLI.
 Exit codes: 0 success; 1 output/internal failure; 2 invalid usage;
@@ -56,10 +56,16 @@ type Result struct {
 }
 
 func Run(args []string, stdout, stderr io.Writer) int {
-	return run(args, stdout, stderr, personal.NewClient().Audit)
+	client := personal.NewClient()
+	return runLifecycle(args, stdout, stderr, client.Audit, client.Execute)
 }
 
+type executor func(context.Context, string, *personal.Report, string, io.Writer) error
+
 func run(args []string, stdout, stderr io.Writer, audit func(context.Context, personal.Selection) (*personal.Report, error)) int {
+	return runLifecycle(args, stdout, stderr, audit, nil)
+}
+func runLifecycle(args []string, stdout, stderr io.Writer, audit func(context.Context, personal.Selection) (*personal.Report, error), execute executor) int {
 	jsonMode := false
 	duplicateJSON := false
 	var rest []string
@@ -92,7 +98,7 @@ func run(args []string, stdout, stderr io.Writer, audit func(context.Context, pe
 			request, err := productcommand.Parse(rest)
 			if err != nil {
 				fail(2, "invalid_usage", "Invalid Personal command or conflicting options; --purge is unsupported. Run siaas --help.")
-			} else if !request.Check && !request.DryRun || request.Command == "uninstall" || request.Command == "rollback" {
+			} else if request.Command == "rollback" || execute == nil && (!request.Check && !request.DryRun || request.Command == "uninstall") {
 				fail(3, "unsupported_capability", "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted.")
 			} else {
 				platform, arch := runtime.GOOS, runtime.GOARCH
@@ -103,7 +109,13 @@ func run(args []string, stdout, stderr io.Writer, audit func(context.Context, pe
 					arch = "x64"
 				}
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-				report, err := audit(ctx, personal.Selection{Version: request.Version, Channel: request.Channel, Platform: platform, Arch: arch})
+				var report *personal.Report
+				var err error
+				if request.Command != "uninstall" {
+					report, err = audit(ctx, personal.Selection{Version: request.Version, Channel: request.Channel, Platform: platform, Arch: arch})
+				} else {
+					report = &personal.Report{Channel: request.Channel, Compatible: true}
+				}
 				cancel()
 				if err != nil {
 					if problem, ok := err.(*personal.Failure); ok {
@@ -115,8 +127,21 @@ func run(args []string, stdout, stderr io.Writer, audit func(context.Context, pe
 					fail(4, "verification_failed", "Personal release verification produced no evidence.")
 				} else {
 					r.Personal = report
-					// Read-only source integrity never proves native execution support.
-					if !request.Check {
+					if execute != nil && report.Compatible && !request.Check && !request.DryRun {
+						if !request.Yes {
+							fail(2, "confirmation_required", "Official source builds run as your user and download dependencies; rerun with --yes after review.")
+						} else {
+							root, e := personal.ManagedRoot(request.Channel)
+							if e == nil {
+								e = execute(context.Background(), request.Command, report, root, io.Discard)
+							}
+							if e != nil {
+								fail(5, "lifecycle_failed", "Personal lifecycle operation failed. Inspect build diagnostics and retained locks; user data is preserved.")
+							} else {
+								r.Message = "Personal " + request.Command + " completed."
+							}
+						}
+					} else if !request.Check {
 						fail(3, "unsupported_capability", "Verified source bytes are not an accepted lifecycle adapter. No changes were made.")
 					} else {
 						r.Message = "Verified Personal " + report.Version + " source integrity; lifecycle execution remains unsupported. No installation was performed."

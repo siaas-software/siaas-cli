@@ -61,7 +61,7 @@ func Parse(args []string) (Request, error) {
 				r.Channel = "candidate"
 			}
 		case "--rc":
-			if r.Command != "install" && r.Command != "update" {
+			if r.Command != "install" && r.Command != "update" && r.Command != "uninstall" {
 				return Request{}, ErrInvalidRequest
 			}
 			r.Channel = "candidate"

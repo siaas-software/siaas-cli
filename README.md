@@ -1,3 +1,6 @@
+> Current integration attempt and native blocker: [first-party M2](docs/m2-working-lifecycle.md).
+> No successful lifecycle acceptance or release approval is claimed.
+
 # SIAAS CLI
 
 A standalone, local command-line application that will manage SIAAS products.

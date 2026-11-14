@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/siaas-software/siaas-cli/internal/personal"
+	"io"
 	"strings"
 	"testing"
 )
@@ -47,7 +48,7 @@ func TestContract(t *testing.T) {
 				if tc.name == "duplicate JSON" {
 					want = 2
 				}
-				if got := Run(args, &out, &diagnostic); got != want {
+				if got := run(args, &out, &diagnostic, personal.NewClient().Audit); got != want {
 					t.Fatalf("exit=%d want=%d", got, want)
 				}
 				jsonMode := machine || tc.name == "duplicate JSON"
@@ -146,5 +147,40 @@ func TestReadOnlyErrorRedaction(t *testing.T) {
 	})
 	if code != 4 || strings.Contains(out.String()+diagnostic.String(), "private-secret") {
 		t.Fatal("unredacted error")
+	}
+}
+
+func TestFirstPartyExecutionRouting(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	for _, tc := range []struct {
+		args       []string
+		compatible bool
+		calls      int
+		exit       int
+	}{
+		{[]string{"install", "personal", "--yes"}, true, 1, 0},
+		{[]string{"update", "personal", "--yes", "--rc"}, true, 1, 0},
+		{[]string{"install", "personal", "--yes"}, false, 0, 3},
+		{[]string{"install", "personal"}, true, 0, 2},
+		{[]string{"install", "personal", "--check"}, true, 0, 0},
+		{[]string{"uninstall", "personal", "--yes", "--rc"}, true, 1, 0},
+	} {
+		calls := 0
+		var out, diagnostics bytes.Buffer
+		got := runLifecycle(append(tc.args, "--json"), &out, &diagnostics,
+			func(context.Context, personal.Selection) (*personal.Report, error) {
+				return &personal.Report{Version: "1.1.1-rc.1", Channel: "candidate", Compatible: tc.compatible}, nil
+			},
+			func(ctx context.Context, command string, r *personal.Report, root string, logs io.Writer) error {
+				calls++
+				return nil
+			})
+		if got != tc.exit || calls != tc.calls {
+			t.Fatalf("%v exit %d calls %d", tc.args, got, calls)
+		}
+		var result Result
+		if json.Unmarshal(out.Bytes(), &result) != nil {
+			t.Fatal("invalid JSON")
+		}
 	}
 }

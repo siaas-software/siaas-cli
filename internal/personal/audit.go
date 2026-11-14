@@ -102,6 +102,7 @@ func (c *Client) Audit(ctx context.Context, s Selection) (*Report, error) {
 	if !ok {
 		return nil, fail("invalid_release")
 	}
+	var selected manifest
 	if r.Prerelease {
 		data, err = load("rc-manifests.json", 65536)
 		if err != nil {
@@ -117,6 +118,9 @@ func (c *Client) Audit(ctx context.Context, s Selection) (*Report, error) {
 		for _, platform := range []string{"linux", "win32", "darwin"} {
 			for _, arch := range []string{"x64", "arm64"} {
 				m, ok := manifests[platform+"-"+arch]
+				if platform == s.Platform && arch == s.Arch {
+					selected = m
+				}
 				osname, extension := platform, ".tar.gz"
 				if platform == "win32" {
 					osname = "win"
@@ -136,11 +140,38 @@ func (c *Client) Audit(ctx context.Context, s Selection) (*Report, error) {
 	if err := verifyArchive(data, commit, index); err != nil {
 		return nil, err
 	}
+	reader, _ := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	compatible := false
+	for _, entry := range reader.File {
+		if entry.Name == "scripts/lib/cli-first-party.json" {
+			f, e := entry.Open()
+			if e != nil {
+				return nil, fail("integrity_error")
+			}
+			b, e := io.ReadAll(io.LimitReader(f, 4097))
+			f.Close()
+			if e != nil || len(b) > 4096 {
+				return nil, fail("invalid_release")
+			}
+			// Exact marker, no arbitrary command or entry-point field.
+			compatible = string(bytes.TrimSpace(b)) == `{"schemaVersion":1,"protocol":"siaas.personal.first-party-m2","platforms":["linux-x64"],"installOnly":true,"uninstallPreservesData":true}` && s.Platform == "linux" && s.Arch == "x64"
+		}
+	}
+	if selected.Version == "" { // Stable source index: derive canonical target runtime; verify official checksum before provisioning.
+		selected = manifest{Schema: 1, Version: version, Platform: s.Platform, Arch: s.Arch, Name: source.Name, Size: source.Size, SHA256: strings.TrimPrefix(source.Digest, "sha256:"), URL: source.URL}
+		selected.Runtime.Version = index.Node
+		selected.Runtime.Name = "node-v" + index.Node + "-" + s.Platform + "-" + s.Arch + ".tar.gz"
+		selected.Runtime.URL = "https://nodejs.org/dist/v" + index.Node + "/" + selected.Runtime.Name
+	}
+	blocker := "unsupported_capability"
+	if compatible {
+		blocker = ""
+	}
 	// The published source format, including PR28's proposed bootstrap hint, is
 	// not the normative adapter. There is intentionally no execution fallback.
 	return &Report{Repository: repository, Version: version, Channel: s.Channel, Platform: s.Platform, Arch: s.Arch, ReleaseID: r.ID, Commit: commit,
 		Immutable: r.Immutable, SourceSHA256: strings.TrimPrefix(source.Digest, "sha256:"), SourceSize: source.Size, SourceVerified: true,
-		RuntimeVersion: index.Node, RuntimeProvisioned: false, Compatible: false, Blocker: "unsupported_capability"}, nil
+		RuntimeVersion: index.Node, RuntimeProvisioned: false, Compatible: compatible, Blocker: blocker, source: data, runtimeSpec: selected}, nil
 }
 
 func safeEntry(name string) bool {

@@ -65,6 +65,9 @@ type release struct {
 }
 type Selection struct{ Version, Channel, Platform, Arch string }
 type Report struct {
+	source      []byte
+	runtimeSpec manifest
+
 	Repository         string `json:"repository"`
 	Version            string `json:"version"`
 	Channel            string `json:"channel"`
