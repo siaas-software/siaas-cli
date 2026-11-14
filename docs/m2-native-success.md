@@ -96,3 +96,28 @@ release exists and CLI install/update via its real release resolution are accept
 GUI lifecycle/descendant acceptance, hostile same-user tampering, automatic stale
 lock/partial uninstall recovery and power-loss guarantees remain outside these
 passes. No merge, Actions run, OS policy change, release or tag operation occurred.
+
+## Reproducibility maintenance after the recorded native PASS
+
+The 93.08-second PASS in this report was executed on commit
+`82d89c7eda59b160d6cabb5d7b69ddc94f01ef2e`. Later review-only changes to
+`internal/personal/native_test.go` eliminate its absolute
+`/workspace/rc3-preserved/assets/rc-manifests.json` dependency: the opted-in
+real test now reads the pinned Node version from the trusted source fixture's
+`runtime.json` and retrieves the corresponding SHA-256 from official Node
+`SHASUMS256.txt` over HTTPS (same origin used by real provisioning).
+`SIAAS_M2_EVIDENCE_ROOT` is optional: without it the log goes to a disposable
+test directory instead of the checkout. `SIAAS_M2_TRUSTED_SOURCE_TEST` remains an
+explicit absolute local path to the reviewed Personal source fixture.
+
+These changes passed static source/manifest consistency checks performed through
+the GitHub connector. **The 93.08-second native suite was NOT rerun after these
+test-harness edits.** Prior native PASS must not be misrepresented as a fresh
+execution of the latest commit. Re-run on an authorized capable Linux x64 host
+before using the latest revision as new native acceptance evidence.
+
+Proposed future compatible candidate: Personal `v1.1.0-rc.4` (not created or
+published). Its preparation documents live in Personal PR #30. The current public
+RC3 is incompatible and cannot be used as a CLI update source. A published
+install/uninstall verification can follow an authorized RC4 publication; an
+actual public RC-to-RC update requires a second compatible candidate.
