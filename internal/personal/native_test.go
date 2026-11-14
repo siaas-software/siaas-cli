@@ -35,6 +35,38 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 		t.Fatal(e)
 	}
 	c := NewClient()
+	// Use the source fixture's pinned runtime, not a workspace-specific
+	// previously generated RC manifest. The real test already requires HTTPS
+	// for official Node provisioning; obtain its checksum from the same issuer.
+	runtimeJSON, e := os.ReadFile(filepath.Join(source, "runtime.json"))
+	if e != nil {
+		t.Fatal(e)
+	}
+	var runtimeConfig struct {
+		NodeVersion string `json:"nodeVersion"`
+	}
+	if e := json.Unmarshal(runtimeJSON, &runtimeConfig); e != nil || !validVersion(runtimeConfig.NodeVersion) || strings.Contains(runtimeConfig.NodeVersion, "-") {
+		t.Fatal("invalid trusted source runtime.json")
+	}
+	nodeVersion := runtimeConfig.NodeVersion
+	nodeName := "node-v" + nodeVersion + "-linux-x64.tar.gz"
+	sums, e := c.nodeBytes(context.Background(), "https://nodejs.org/dist/v"+nodeVersion+"/SHASUMS256.txt", 65536)
+	if e != nil {
+		t.Fatal(e)
+	}
+	var nodeHash string
+	for _, line := range strings.Split(string(sums), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 2 && fields[1] == nodeName {
+			if nodeHash != "" {
+				t.Fatal("duplicate official Node checksum entry")
+			}
+			nodeHash = fields[0]
+		}
+	}
+	if !hashRE.MatchString(nodeHash) {
+		t.Fatal("official Node runtime checksum missing or invalid")
+	}
 	makeRelease := func(version string) *Report {
 		var b bytes.Buffer
 		w := zip.NewWriter(&b)
@@ -100,19 +132,17 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 		data := b.Bytes()
 		sum := sha256.Sum256(data)
 		t.Logf("trusted local source %s: bytes=%d sha256=%x", version, len(data), sum)
-		runtimeHashes, e := os.ReadFile("/workspace/rc3-preserved/assets/rc-manifests.json")
-		if e != nil {
-			t.Fatal(e)
+		m := manifest{
+			Schema: 1, Version: version, Platform: "linux", Arch: "x64",
+			Name: "SIAAS-Personal-" + version + "-source.zip",
+			Size: int64(len(data)), SHA256: hex.EncodeToString(sum[:]),
 		}
-		var all map[string]manifest
-		json.Unmarshal(runtimeHashes, &all)
-		m := all["linux-x64"]
-		m.Version = version
-		m.Size = int64(len(data))
-		m.SHA256 = hex.EncodeToString(sum[:])
-		m.Name = "SIAAS-Personal-" + version + "-source.zip"
 		m.URL = releaseBase + "download/v" + version + "/" + m.Name
-		if e := verifyArchive(data, strings.Repeat("a", 40), sourceIndex{1, version, "24.22.0"}); e != nil {
+		m.Runtime.Version = nodeVersion
+		m.Runtime.Name = nodeName
+		m.Runtime.URL = "https://nodejs.org/dist/v" + nodeVersion + "/" + nodeName
+		m.Runtime.SHA256 = nodeHash
+		if e := verifyArchive(data, strings.Repeat("a", 40), sourceIndex{1, version, nodeVersion}); e != nil {
 			t.Fatal(e)
 		}
 		return &Report{Version: version, Channel: "candidate", Compatible: true, source: data, runtimeSpec: m}
