@@ -2,6 +2,7 @@ package personal
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -45,5 +46,16 @@ func TestBoundedDiagnostics(t *testing.T) {
 	b := &boundedLog{writer: io.Discard, remaining: 1}
 	if n, e := b.Write([]byte("abc")); n != 3 || e != nil || b.remaining != 0 {
 		t.Fatal(n, e)
+	}
+}
+
+func TestUninstallDoesNotCompareAnAbsentReleaseVersion(t *testing.T) {
+	root := t.TempDir()
+	owner, _ := json.Marshal(ownership{1, "siaas.personal.first-party-m2", root, "candidate"})
+	os.WriteFile(filepath.Join(root, "cli-owner.json"), owner, 0600)
+	os.WriteFile(filepath.Join(root, "current.json"), []byte(`{"version":"1.1.1-rc.2","folder":"1.1.1-rc.2-1","cliManaged":1,"runtime":{"node":"/outside"}}`), 0600)
+	// A malformed installed runtime must return an error, never panic in semver.
+	if e := NewClient().Execute(context.Background(), "uninstall", &Report{Channel: "candidate"}, root, io.Discard); e == nil {
+		t.Fatal("invalid runtime accepted")
 	}
 }

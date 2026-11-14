@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-14",
+  "scope": "Linux x64 real backend lifecycle; compiled CLI uninstall; local trusted release fixtures, not public release acceptance",
+  "go": "1.27.3",
+  "node": "24.22.0",
+  "os": "Linux",
+  "architecture": "x86_64",
+  "kernel": "6.18.57",
+  "inputHeads": {
+    "cli": "fe9a7abde0a0b2677db970cb839183a27e15ec94",
+    "personal": "cdba16dded5e3dae6ba43137b106563dd8ff3a91"
+  },
+  "nativeTest": {
+    "status": "PASS",
+    "durationSeconds": 93.08,
+    "command": "SIAAS_M2_TRUSTED_SOURCE_TEST=/workspace/siaas-personal-m2 SIAAS_M2_EVIDENCE_ROOT=/workspace/m2-evidence/working go test -v -run ^TestFirstPartyRealLifecycle$ -timeout=20m ./internal/personal",
+    "cases": {
+      "freshInstall": "PASS real backend and Personal builder",
+      "repeatInstall": "PASS",
+      "genuineUpdate": "PASS RC.1 to RC.2",
+      "downgrade": "PASS rejected",
+      "failedNewerBuild": "PASS injected exit17; current metadata and profile sentinel preserved",
+      "compiledCLIUninstall": "PASS exit0",
+      "compiledCLIRepeatUninstall": "PASS exit0",
+      "ownedSoftwareRemoval": "PASS versions/runtimes/build-home absent",
+      "profileSentinel": "PASS unchanged",
+      "coldBackup": "PASS present",
+      "unrelatedStableSentinel": "PASS unchanged",
+      "publishedReleaseBinaryInstallUpdate": "NOT RUN; no compatible published release",
+      "nativeGUI": "NOT RUN",
+      "externalOllama": "No start/stop/delete code invoked; actual service acceptance NOT RUN"
+    }
+  },
+  "testedBinarySha256": "b33e0693642c2d19508e508e46bc13097d826ff952a50e3196a810743524a846",
+  "localArchives": [
+    {
+      "version": "1.1.1-rc.1",
+      "size": 1330279,
+      "sha256": "a68fba451d31ef662e5bef2a4063fe9b04330205901f7b1d53a34d31129604dc"
+    },
+    {
+      "version": "1.1.1-rc.2",
+      "size": 1330278,
+      "sha256": "b73854e23d818e4ae72a9716fd733d3558a9261ac98ade5718bf27f598155561"
+    },
+    {
+      "version": "1.1.1-rc.3",
+      "size": 1330293,
+      "sha256": "ec3bd43a8a2193a8d909a7a3300938d83851ae1fa27ac22975d081ba25413285"
+    }
+  ],
+  "regressions": {
+    "fullGoSuite": "PASS (opt-in native case skipped by default)",
+    "race": "PASS",
+    "vet": "PASS",
+    "personalTargetedTests": 28,
+    "finalLeaseBackupTests": 10,
+    "testCountsOverlap": true,
+    "typecheck": "PASS",
+    "whitespaceAndLinks": "PASS"
+  },
+  "limitations": [
+    "Cooperative managed launch protocol; raw unmanaged executables are not adopted.",
+    "Interrupted supervisor leaves a lock; no automatic stale-lock or partial-uninstall recovery.",
+    "Cold backup bound 1GiB; persistence-code changes refused pending migration review.",
+    "No power-loss, arbitrary-code containment, actual SQLite migration, GUI/descendant shutdown or other-platform signoff.",
+    "Native-tested binary hash is recorded; subsequent nonbehavioral Go tag formatting was covered by unit/race/vet."
+  ],
+  "otherTargets": {
+    "linux-arm64": "NOT RUN",
+    "windows-x64": "NOT RUN",
+    "windows-arm64": "NOT RUN",
+    "macos-x64": "NOT RUN",
+    "macos-arm64": "NOT RUN"
+  },
+  "logs": {
+    "go-tests.log": "ebd378cc351eb452c70423fb165042c2cfa451d1d790d021c7601fdbb0883d14",
+    "engine-real.log": "48222a184f584e7e25b9f71d6a3be35d9c3afc67fcb98dfa08a2c4f9d6f015c6",
+    "go-race.log": "89454b655cbe51a0475d4caa8e44355d2ee2d024fa2ed220d9a8d8863db960fe",
+    "real-test.log": "5b6664565604ec77370ca4a47b791049924cb860882987fc770423ced585a786"
+  },
+  "verdict": "CONDITIONAL GO for Linux backend technical review; public M2 acceptance incomplete",
+  "rawEngineLogSha256": "23124300875aa7e16dd73acec3cc48b40602668bdf225401a0564f2a42b75e8f",
+  "logNormalization": "Engine log: CRLF/trailing progress whitespace normalized for git diff --check; raw hash retained."
+}

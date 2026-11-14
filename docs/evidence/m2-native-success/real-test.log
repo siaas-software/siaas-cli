@@ -1,0 +1,11 @@
+=== RUN   TestFirstPartyRealLifecycle
+    native_test.go:148: compiled CLI sha256=b33e0693642c2d19508e508e46bc13097d826ff952a50e3196a810743524a846
+    native_test.go:102: trusted local source 1.1.1-rc.1: bytes=1330279 sha256=a68fba451d31ef662e5bef2a4063fe9b04330205901f7b1d53a34d31129604dc
+    native_test.go:102: trusted local source 1.1.1-rc.2: bytes=1330278 sha256=b73854e23d818e4ae72a9716fd733d3558a9261ac98ade5718bf27f598155561
+    native_test.go:102: trusted local source 1.1.1-rc.3: bytes=1330293 sha256=ec3bd43a8a2193a8d909a7a3300938d83851ae1fa27ac22975d081ba25413285
+    native_test.go:210: compiled CLI uninstall attempt 1: {"schemaVersion":1,"ok":true,"command":"uninstall","version":"0.1.0","message":"Personal uninstall completed.","personal":{"repository":"","version":"","channel":"candidate","platform":"","arch":"","releaseId":0,"commit":"","immutable":false,"sourceSha256":"","sourceSize":0,"sourceVerified":false,"runtimeVersion":"","runtimeProvisioned":false,"compatible":true,"blocker":""}}
+    native_test.go:210: compiled CLI uninstall attempt 2: {"schemaVersion":1,"ok":true,"command":"uninstall","version":"0.1.0","message":"Personal uninstall completed.","personal":{"repository":"","version":"","channel":"candidate","platform":"","arch":"","releaseId":0,"commit":"","immutable":false,"sourceSha256":"","sourceSize":0,"sourceVerified":false,"runtimeVersion":"","runtimeProvisioned":false,"compatible":true,"blocker":""}}
+    native_test.go:230: Actual first-party engine install, repeat, update, downgrade refusal, failed-update preservation; compiled CLI uninstall/repeat removes owned software; profile and cold backups preserved
+--- PASS: TestFirstPartyRealLifecycle (93.08s)
+PASS
+ok  	github.com/siaas-software/siaas-cli/internal/personal	93.096s

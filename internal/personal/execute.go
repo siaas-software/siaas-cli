@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 )
@@ -146,8 +147,18 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 	if r != nil && owner.Channel != r.Channel {
 		return fmt.Errorf("channel switch refused")
 	}
-	if active && r != nil && newer(current.Version, r.Version) {
+	if command != "uninstall" && active && r != nil && newer(current.Version, r.Version) {
 		return fmt.Errorf("downgrade refused")
+	}
+	var before map[string]string
+	if command == "update" {
+		if e = requireSameDataCode(root, current.Folder, r.source); e != nil {
+			return e
+		}
+		before, e = profileSnapshot(root)
+		if e != nil {
+			return e
+		}
 	}
 	var node, entry string
 	args := []string{}
@@ -245,6 +256,15 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 	// direct child; interrupted operations retain locks for explicit inspection.
 	if e = cmd.Run(); e != nil {
 		return fmt.Errorf("Personal engine failed; inspect retained logs and locks: %w", e)
+	}
+	if command == "update" {
+		after, e := profileSnapshot(root)
+		if e != nil {
+			return e
+		}
+		if !reflect.DeepEqual(before, after) {
+			return fmt.Errorf("profile changed during install-only update; inspect cold backup")
+		}
 	}
 	if command == "uninstall" {
 		if _, e = os.Stat(filepath.Join(root, "current.json")); !os.IsNotExist(e) {
@@ -381,6 +401,11 @@ func (c *Client) bootstrap(ctx context.Context, root string, m *manifest) (strin
 			return "", fail("integrity_error")
 		}
 		if e != nil {
+			return "", e
+		}
+	}
+	for name, target := range map[string]string{"npm": "../lib/node_modules/npm/bin/npm-cli.js", "npx": "../lib/node_modules/npm/bin/npx-cli.js"} {
+		if e = os.Symlink(target, filepath.Join(stage, "bin", name)); e != nil {
 			return "", e
 		}
 	}

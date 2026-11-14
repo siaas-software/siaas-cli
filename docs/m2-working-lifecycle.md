@@ -1,3 +1,6 @@
+> Historical blocked attempt. The process scope bug is corrected; see
+> [current native success and limits](m2-native-success.md).
+
 # First-party M2 integration attempt — 2026-11-14
 
 **NO-GO: real install/update/uninstall acceptance is BLOCKED.** This branch builds

@@ -1,5 +1,7 @@
-> Current integration attempt and native blocker: [first-party M2](docs/m2-working-lifecycle.md).
-> No successful lifecycle acceptance or release approval is claimed.
+> Linux backend native lifecycle evidence: [successful cycle and limits](docs/m2-native-success.md).
+> Public CLI install/update acceptance still requires a compatible release.
+
+> Earlier blocked attempt: [historical first-party M2 report](docs/m2-working-lifecycle.md).
 
 # SIAAS CLI
 

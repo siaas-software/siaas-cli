@@ -9,7 +9,9 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -23,7 +25,15 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 	if !filepath.IsAbs(source) {
 		t.Fatal("absolute trusted fixture required")
 	}
-	root := filepath.Join(t.TempDir(), "Personal è space")
+	home := filepath.Join(t.TempDir(), "Home è space")
+	if e := os.MkdirAll(home, 0700); e != nil {
+		t.Fatal(e)
+	}
+	t.Setenv("HOME", home)
+	root, e := ManagedRoot("candidate")
+	if e != nil {
+		t.Fatal(e)
+	}
 	c := NewClient()
 	makeRelease := func(version string) *Report {
 		var b bytes.Buffer
@@ -39,6 +49,9 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 				if rel == ".git" || rel == "node_modules" || rel == ".next" || rel == ".desktop" || rel == "dist" || rel == "dist-source" {
 					return filepath.SkipDir
 				}
+				return nil
+			}
+			if rel == ".git" {
 				return nil
 			}
 			if strings.HasPrefix(rel, ".env") || strings.HasSuffix(rel, ".tsbuildinfo") {
@@ -62,6 +75,9 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 				if pkgs, ok := pkg["packages"].(map[string]any); ok {
 					pkgs[""].(map[string]any)["version"] = version
 				}
+				if version == "1.1.1-rc.3" && rel == "package.json" {
+					pkg["scripts"].(map[string]any)["desktop:build"] = "node -e 'process.exit(17)'"
+				}
 				data, _ = json.Marshal(pkg)
 			}
 			h, e := zip.FileInfoHeader(info)
@@ -83,6 +99,7 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 		w.Close()
 		data := b.Bytes()
 		sum := sha256.Sum256(data)
+		t.Logf("trusted local source %s: bytes=%d sha256=%x", version, len(data), sum)
 		runtimeHashes, e := os.ReadFile("/workspace/rc3-preserved/assets/rc-manifests.json")
 		if e != nil {
 			t.Fatal(e)
@@ -118,6 +135,23 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 			t.Fatalf("%s: %v\n%s", command, e, b[tail:])
 		}
 	}
+	binary := filepath.Join(t.TempDir(), "siaas")
+	build := exec.Command(filepath.Join(runtime.GOROOT(), "bin", "go"), "build", "-o", binary, "./cmd/siaas")
+	build.Dir = "../.."
+	if b, e := build.CombinedOutput(); e != nil {
+		t.Fatalf("CLI build: %v %s", e, b)
+	}
+	binaryBytes, e := os.ReadFile(binary)
+	if e != nil {
+		t.Fatal(e)
+	}
+	t.Logf("compiled CLI sha256=%x", sha256.Sum256(binaryBytes))
+	stableSibling, _ := ManagedRoot("stable")
+	if e = os.MkdirAll(stableSibling, 0700); e != nil {
+		t.Fatal(e)
+	}
+	stableSentinel := filepath.Join(stableSibling, "unrelated-stable")
+	os.WriteFile(stableSentinel, []byte("stable preserved"), 0600)
 	first := makeRelease("1.1.1-rc.1")
 	run("install", first)
 	profile := filepath.Join(root, "profile")
@@ -148,8 +182,41 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 	if e := c.Execute(context.Background(), "update", first, root, io.Discard); e == nil {
 		t.Fatal("downgrade accepted")
 	}
-	run("uninstall", nil)
-	run("uninstall", nil)
+	// Fail a genuine newer build and prove current metadata/data remain unchanged.
+	previousBytes, _ := os.ReadFile(filepath.Join(root, "current.json"))
+	failed := makeRelease("1.1.1-rc.3")
+	if e := c.Execute(context.Background(), "update", failed, root, log); e == nil {
+		t.Fatal("injected build failure accepted")
+	}
+	afterFailure, _ := os.ReadFile(filepath.Join(root, "current.json"))
+	if !bytes.Equal(previousBytes, afterFailure) {
+		t.Fatal("failed update changed active generation")
+	}
+	if data, e := os.ReadFile(sentinel); e != nil || string(data) != "unchanged" {
+		t.Fatal("failed update changed data")
+	}
+	for i := 0; i < 2; i++ {
+		command := exec.Command(binary, "uninstall", "personal", "--rc", "--yes", "--json")
+		output, e := command.CombinedOutput()
+		if e != nil {
+			t.Fatalf("compiled CLI uninstall: %v %s", e, output)
+		}
+		var receipt struct {
+			OK bool `json:"ok"`
+		}
+		if json.Unmarshal(output, &receipt) != nil || !receipt.OK {
+			t.Fatal("invalid CLI receipt", string(output))
+		}
+		t.Logf("compiled CLI uninstall attempt %d: %s", i+1, output)
+	}
+	for _, name := range []string{"versions", "runtimes", "build-home"} {
+		if _, e := os.Stat(filepath.Join(root, name)); !os.IsNotExist(e) {
+			t.Fatalf("owned software retained: %s", name)
+		}
+	}
+	if entries, e := os.ReadDir(filepath.Join(root, "backups")); e != nil || len(entries) == 0 {
+		t.Fatal("cold backup missing", e)
+	}
 	b, e := os.ReadFile(sentinel)
 	if e != nil || string(b) != "unchanged" {
 		t.Fatal("data changed", e)
@@ -157,5 +224,8 @@ func TestFirstPartyRealLifecycle(t *testing.T) {
 	if _, e = os.Stat(filepath.Join(root, "launch-rc.sh")); !os.IsNotExist(e) {
 		t.Fatal("launcher not removed")
 	}
-	t.Log("Actual first-party engine install, repeat, update, downgrade refusal, uninstall and repeated uninstall; profile sentinel preserved")
+	if data, e := os.ReadFile(stableSentinel); e != nil || string(data) != "stable preserved" {
+		t.Fatal("unrelated stable data modified")
+	}
+	t.Log("Actual first-party engine install, repeat, update, downgrade refusal, failed-update preservation; compiled CLI uninstall/repeat removes owned software; profile and cold backups preserved")
 }
