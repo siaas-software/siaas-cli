@@ -1,0 +1,6 @@
+?   	github.com/siaas-software/siaas-cli/cmd/siaas	[no test files]
+ok  	github.com/siaas-software/siaas-cli/internal/cli	1.023s
+ok  	github.com/siaas-software/siaas-cli/internal/personal	1.682s
+ok  	github.com/siaas-software/siaas-cli/internal/productcommand	1.015s
+ok  	github.com/siaas-software/siaas-cli/tests	5.737s
+?   	github.com/siaas-software/siaas-cli/tools/build	[no test files]

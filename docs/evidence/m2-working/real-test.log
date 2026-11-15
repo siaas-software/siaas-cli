@@ -1,0 +1,7 @@
+=== RUN   TestFirstPartyRealLifecycle
+    native_test.go:122: install: Personal engine failed; inspect retained logs and locks: exit status 1
+        SIAAS: EACCES: permission denied, readlink '/proc/1/exe'
+--- FAIL: TestFirstPartyRealLifecycle (4.76s)
+FAIL
+FAIL	github.com/siaas-software/siaas-cli/internal/personal	4.776s
+FAIL

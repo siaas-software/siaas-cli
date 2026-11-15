@@ -1,0 +1,271 @@
+{
+  "scope": "Actual standalone Linux x64 commands against live GitHub; read-only verification and safe refusals, NOT successful lifecycle acceptance",
+  "binarySha256": "d8777eb7ea090ae6e88e2dbf48839c5a16612c4931aee05178b4721281913220",
+  "cases": [
+    {
+      "command": "siaas install personal --check --json",
+      "exit": 0,
+      "expectedExit": 0,
+      "result": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "install",
+        "version": "0.1.0",
+        "message": "Verified Personal 1.0.0 source integrity; lifecycle execution remains unsupported. No installation was performed.",
+        "personal": {
+          "repository": "siaas-software/siaas-personal",
+          "version": "1.0.0",
+          "channel": "stable",
+          "platform": "linux",
+          "arch": "x64",
+          "releaseId": 421455029,
+          "commit": "1bce852cabbefb2459aeafc5aa42146eabd6283b",
+          "immutable": true,
+          "sourceSha256": "a88abb50bb5a56d1843db431d5253ba2b04a90fc7af9cb71bf98d1cfa6ab15de",
+          "sourceSize": 540356,
+          "sourceVerified": true,
+          "runtimeVersion": "24.22.0",
+          "runtimeProvisioned": false,
+          "compatible": false,
+          "blocker": "unsupported_capability"
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas install personal --rc --check --json",
+      "exit": 0,
+      "expectedExit": 0,
+      "result": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "install",
+        "version": "0.1.0",
+        "message": "Verified Personal 1.1.0-rc.3 source integrity; lifecycle execution remains unsupported. No installation was performed.",
+        "personal": {
+          "repository": "siaas-software/siaas-personal",
+          "version": "1.1.0-rc.3",
+          "channel": "candidate",
+          "platform": "linux",
+          "arch": "x64",
+          "releaseId": 438958111,
+          "commit": "17202c5964d9282efd4a1991c548612287c65dbb",
+          "immutable": true,
+          "sourceSha256": "bca254fc43313b23f8ec7764018968b8c91c0da01949c1833813517081fbe513",
+          "sourceSize": 1247166,
+          "sourceVerified": true,
+          "runtimeVersion": "24.22.0",
+          "runtimeProvisioned": false,
+          "compatible": false,
+          "blocker": "unsupported_capability"
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas install personal --version 1.1.0-rc.3 --check --json",
+      "exit": 0,
+      "expectedExit": 0,
+      "result": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "install",
+        "version": "0.1.0",
+        "message": "Verified Personal 1.1.0-rc.3 source integrity; lifecycle execution remains unsupported. No installation was performed.",
+        "personal": {
+          "repository": "siaas-software/siaas-personal",
+          "version": "1.1.0-rc.3",
+          "channel": "candidate",
+          "platform": "linux",
+          "arch": "x64",
+          "releaseId": 438958111,
+          "commit": "17202c5964d9282efd4a1991c548612287c65dbb",
+          "immutable": true,
+          "sourceSha256": "bca254fc43313b23f8ec7764018968b8c91c0da01949c1833813517081fbe513",
+          "sourceSize": 1247166,
+          "sourceVerified": true,
+          "runtimeVersion": "24.22.0",
+          "runtimeProvisioned": false,
+          "compatible": false,
+          "blocker": "unsupported_capability"
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas update personal --version 1.1.0-rc.3 --dry-run --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "update",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "Verified source bytes are not an accepted lifecycle adapter. No changes were made."
+        },
+        "personal": {
+          "repository": "siaas-software/siaas-personal",
+          "version": "1.1.0-rc.3",
+          "channel": "candidate",
+          "platform": "linux",
+          "arch": "x64",
+          "releaseId": 438958111,
+          "commit": "17202c5964d9282efd4a1991c548612287c65dbb",
+          "immutable": true,
+          "sourceSha256": "bca254fc43313b23f8ec7764018968b8c91c0da01949c1833813517081fbe513",
+          "sourceSize": 1247166,
+          "sourceVerified": true,
+          "runtimeVersion": "24.22.0",
+          "runtimeProvisioned": false,
+          "compatible": false,
+          "blocker": "unsupported_capability"
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas install personal --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "install",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas install personal --rc --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "install",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas install personal --version 1.1.0-rc.3 --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "install",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas update personal --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "update",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas uninstall personal --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "uninstall",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas uninstall personal --json",
+      "exit": 3,
+      "expectedExit": 3,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "uninstall",
+        "version": "0.1.0",
+        "error": {
+          "code": "unsupported_capability",
+          "message": "No verified Personal lifecycle backend is available. No installation, update, adoption or removal was attempted."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas install personal --check --version 9999.0.0 --json",
+      "exit": 4,
+      "expectedExit": 4,
+      "result": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "install",
+        "version": "0.1.0",
+        "error": {
+          "code": "release_not_found",
+          "message": "No published Personal release matches the requested channel or exact version."
+        }
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    },
+    {
+      "command": "siaas --version --json",
+      "exit": 0,
+      "expectedExit": 0,
+      "result": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "version",
+        "version": "0.1.0",
+        "message": "siaas 0.1.0"
+      },
+      "stderrEmpty": true,
+      "classification": "PASS"
+    }
+  ],
+  "temporaryHomeUnchanged": true,
+  "globalRuntimesUnavailableOnPATH": true,
+  "applicationInstalled": false,
+  "runtimeProvisioned": false,
+  "cleanup": "TemporaryDirectory removed after all child commands returned"
+}
