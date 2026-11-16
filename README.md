@@ -1,7 +1,8 @@
 > Linux backend native lifecycle evidence: [successful cycle and limits](docs/m2-native-success.md).
-> Public Personal RC4 Linux x64 install/reinstall/uninstall has been demonstrated
-> using the compiled CLI; M2 remains conditional on truthful JSON reporting
-> and a future compatible public RC-to-RC update. See [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
+> Public Personal RC4 Linux x64 install/reinstall/uninstall and the corrected
+> JSON receipts have passed focused acceptance with the compiled CLI. Broader
+> M2 still awaits a **second compatible public RC** for RC-to-RC update testing.
+> See [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
 
 > Earlier blocked attempt: [historical first-party M2 report](docs/m2-working-lifecycle.md).
 
@@ -100,8 +101,8 @@ installation exists. `--dry-run` verifies release availability but currently
 returns exit 3 because execution planning is not implemented. A completed
 mutating action must additionally verify its local operation receipt, including
 the private runtime's persisted checksum after installation. See
-[JSON lifecycle reporting](docs/m2-json-reporting.md) for the proposed contract
-fix. Public compatible RC-to-RC update acceptance remains pending another
+[JSON lifecycle reporting](docs/m2-json-reporting.md) for the tested reporting
+contract and evidence. Public compatible RC-to-RC update acceptance awaits another
 compatible release; RC3 is not an eligible baseline.
 
 ## Develop and validate locally
