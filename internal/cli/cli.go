@@ -140,8 +140,12 @@ func runLifecycle(args []string, stdout, stderr io.Writer, audit func(context.Co
 								e = execute(context.Background(), request.Command, report, root, io.Discard)
 							}
 							if e != nil {
+								report.Operation = nil
+								report.RuntimeProvisioned = false
 								fail(5, "lifecycle_failed", "Personal lifecycle operation failed. Inspect build diagnostics and retained locks; user data is preserved.")
 							} else if report.Operation == nil || report.Operation.Command != request.Command || report.Operation.Status != "completed" || report.Operation.Installed != (request.Command != "uninstall") || report.Operation.RuntimeProvisioned != (request.Command != "uninstall") || report.RuntimeProvisioned != report.Operation.RuntimeProvisioned {
+								report.Operation = nil
+								report.RuntimeProvisioned = false
 								fail(5, "lifecycle_failed", "Personal lifecycle completed without a verified operation receipt; inspect installed state.")
 							} else {
 								r.Message = "Personal " + request.Command + " completed."
