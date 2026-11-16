@@ -43,6 +43,29 @@ jobs:
           if ((git rev-parse HEAD).Trim() -ne 'd8bf6e61a4d47920a00cc4e069a90cf26ac2d80f') { throw 'Wrong Personal commit' }
           $pkg = Get-Content -LiteralPath package.json -Raw | ConvertFrom-Json
           if ($pkg.version -ne '1.1.0-rc.4') { throw 'Wrong Personal version' }
+      - name: Verify and preserve canonical template snapshot SHA-256
+        shell: pwsh
+        working-directory: personal
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $config = Get-Content -LiteralPath 'templates-source.json' -Raw | ConvertFrom-Json
+          $path = $config.output
+          $expected = $config.outputSha256
+          $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $path).Path)
+          $digest = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+          if ($digest -ne $expected) {
+            $utf8 = [System.Text.UTF8Encoding]::new($false, $true)
+            $text = $utf8.GetString($bytes)
+            $canonical = $utf8.GetBytes($text.Replace("`r`n", "`n"))
+            $canonicalHash = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($canonical)).ToLowerInvariant()
+            if ($canonicalHash -ne $expected) {
+              throw "Template snapshot hash is invalid, not just CRLF conversion: $digest"
+            }
+            [System.IO.File]::WriteAllBytes((Resolve-Path -LiteralPath $path).Path, $canonical)
+            Write-Host 'Restored canonical LF bytes; exact repository SHA-256 verified.'
+          } else {
+            Write-Host 'Template snapshot bytes already match immutable repository SHA-256.'
+          }
       - name: Install pinned Node runtime
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
