@@ -79,20 +79,20 @@ type Report struct {
 	source      []byte
 	runtimeSpec manifest
 
-	Repository         string `json:"repository"`
-	Version            string `json:"version"`
-	Channel            string `json:"channel"`
-	Platform           string `json:"platform"`
-	Arch               string `json:"arch"`
-	ReleaseID          int64  `json:"releaseId"`
-	Commit             string `json:"commit"`
-	Immutable          bool   `json:"immutable"`
-	SourceSHA256       string `json:"sourceSha256"`
-	SourceSize         int64  `json:"sourceSize"`
-	SourceVerified     bool   `json:"sourceVerified"`
-	RuntimeVersion     string `json:"runtimeVersion"`
-	RuntimeProvisioned bool   `json:"runtimeProvisioned"`
-	Compatible         bool   `json:"compatible"`
+	Repository         string            `json:"repository"`
+	Version            string            `json:"version"`
+	Channel            string            `json:"channel"`
+	Platform           string            `json:"platform"`
+	Arch               string            `json:"arch"`
+	ReleaseID          int64             `json:"releaseId"`
+	Commit             string            `json:"commit"`
+	Immutable          bool              `json:"immutable"`
+	SourceSHA256       string            `json:"sourceSha256"`
+	SourceSize         int64             `json:"sourceSize"`
+	SourceVerified     bool              `json:"sourceVerified"`
+	RuntimeVersion     string            `json:"runtimeVersion"`
+	RuntimeProvisioned bool              `json:"runtimeProvisioned"`
+	Compatible         bool              `json:"compatible"`
 	Blocker            string            `json:"blocker"`
 	Operation          *OperationReceipt `json:"operation,omitempty"`
 }
