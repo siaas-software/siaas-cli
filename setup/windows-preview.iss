@@ -20,7 +20,6 @@ SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\bin\siaas.exe
 ArchitecturesAllowed=x64compatible
-SetupIconFile=
 ChangesEnvironment=no
 CloseApplications=yes
 RestartApplications=no
