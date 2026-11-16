@@ -77,11 +77,11 @@ func TestVerifiedLifecycleOperationReceipts(t *testing.T) {
 	sum := sha256.Sum256(binary)
 	version := "1.1.0-rc.4"
 	state := map[string]any{
-		"version": version,
-		"folder": "1.1.0-rc.4-verified",
+		"version":    version,
+		"folder":     "1.1.0-rc.4-verified",
 		"cliManaged": 1,
 		"runtime": map[string]any{
-			"node": node,
+			"node":         node,
 			"binarySha256": hex.EncodeToString(sum[:]),
 		},
 	}
@@ -161,11 +161,11 @@ func TestVerifiedReceiptRejectsRuntimeLinks(t *testing.T) {
 	}
 	b := sha256.Sum256([]byte("external"))
 	state := map[string]any{
-		"version": "1.1.0-rc.4",
-		"folder": "1.1.0-rc.4-verified",
+		"version":    "1.1.0-rc.4",
+		"folder":     "1.1.0-rc.4-verified",
 		"cliManaged": 1,
 		"runtime": map[string]any{
-			"node": filepath.Join(root, "runtimes", "node"),
+			"node":         filepath.Join(root, "runtimes", "node"),
 			"binarySha256": hex.EncodeToString(b[:]),
 		},
 	}
