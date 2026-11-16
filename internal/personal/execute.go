@@ -317,6 +317,9 @@ func finishOperation(root, command string, report *Report) error {
 	if !safeEntry(state.Folder) || strings.Contains(state.Folder, "/") || !hashRE.MatchString(state.Runtime.Binary) || !strings.HasPrefix(state.Runtime.Node, root+string(os.PathSeparator)) || filepath.Clean(state.Runtime.Node) != state.Runtime.Node {
 		return fmt.Errorf("unsafe installed-state receipt")
 	}
+	if err := privatePath(filepath.Dir(state.Runtime.Node)); err != nil {
+		return fmt.Errorf("unsafe installed runtime ancestors")
+	}
 	nodeInfo, err := os.Lstat(state.Runtime.Node)
 	if err != nil || !nodeInfo.Mode().IsRegular() {
 		return fmt.Errorf("installed runtime missing or unsafe")
