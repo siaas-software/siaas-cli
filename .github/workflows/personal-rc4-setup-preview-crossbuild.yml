@@ -1,0 +1,78 @@
+# Temporary cross-repository preview builder: Personal Actions are not triggering
+# on the Personal PR. Source provenance is the exact immutable published RC4
+# commit. NO release/tag publishing, no secrets or Personal repo modifications.
+name: Personal RC4 Windows test setup (cross-build)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/personal-rc4-setup-preview-crossbuild.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-cross-setup-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x64:
+    if: github.repository == 'siaas-software/siaas-cli'
+    name: Package published Personal RC4 Windows x64 separately
+    runs-on: windows-2022
+    timeout-minutes: 65
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - name: Checkout pinned public Personal RC4 source (not CLI)
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: siaas-software/siaas-personal
+          ref: d8bf6e61a4d47920a00cc4e069a90cf26ac2d80f
+          path: personal
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verify exact source and version
+        shell: pwsh
+        working-directory: personal
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ((git rev-parse HEAD).Trim() -ne 'd8bf6e61a4d47920a00cc4e069a90cf26ac2d80f') { throw 'Wrong Personal commit' }
+          $pkg = Get-Content -LiteralPath package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '1.1.0-rc.4') { throw 'Wrong Personal version' }
+      - name: Install pinned Node runtime
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.22.0'
+          architecture: x64
+          cache: npm
+          cache-dependency-path: personal/package-lock.json
+      - name: Install locked Personal dependencies
+        working-directory: personal
+        run: npm ci
+      - name: Validate TypeScript
+        working-directory: personal
+        run: npm run typecheck
+      - name: Build Windows one-file Personal installer
+        working-directory: personal
+        run: npm run desktop:package -- --x64
+      - name: Verify and log setup digest
+        shell: pwsh
+        working-directory: personal
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem -LiteralPath dist -Filter 'SIAAS-Personal-1.1.0-rc.4-*.exe' -File)
+          if ($files.Count -ne 1 -or $files[0].Length -lt 1000000) { throw 'Expected exactly one Personal RC4 setup EXE' }
+          Write-Host "File: $($files[0].Name)"
+          Write-Host "Bytes: $($files[0].Length)"
+          (Get-FileHash -LiteralPath $files[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+      - name: Upload Personal-only unsigned preview setup
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: SIAAS-Personal-RC4-Windows-x64-Preview-Unsigned-Crossbuild
+          path: personal/dist/SIAAS-Personal-1.1.0-rc.4-*.exe
+          if-no-files-found: error
+          retention-days: 14
