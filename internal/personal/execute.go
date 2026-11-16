@@ -74,6 +74,11 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 	if command != "uninstall" && (r == nil || !r.Compatible || len(r.source) == 0) {
 		return fail("unsupported_capability")
 	}
+	// Never carry a prior operation receipt through a new attempt or failure.
+	if r != nil {
+		r.Operation = nil
+		r.RuntimeProvisioned = false
+	}
 	if e := privatePath(root); e != nil {
 		return e
 	}
@@ -88,7 +93,7 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 	} else {
 		if command == "uninstall" {
 			if _, e := os.Stat(root); os.IsNotExist(e) {
-				return nil
+				return finishOperation(root, command, r)
 			}
 			return fmt.Errorf("unmanaged installation; adoption refused")
 		}
@@ -142,7 +147,7 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 		return fmt.Errorf("no managed installation to update")
 	}
 	if command == "uninstall" && !active {
-		return nil
+		return finishOperation(root, command, r)
 	}
 	if r != nil && owner.Channel != r.Channel {
 		return fmt.Errorf("channel switch refused")
@@ -267,10 +272,7 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 		}
 	}
 	if command == "uninstall" {
-		if _, e = os.Stat(filepath.Join(root, "current.json")); !os.IsNotExist(e) {
-			return fmt.Errorf("unregister verification failed")
-		}
-		return nil
+		return finishOperation(root, command, r)
 	}
 	b, e = os.ReadFile(filepath.Join(root, "current.json"))
 	if e != nil {
@@ -279,8 +281,63 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 	if json.Unmarshal(b, &current) != nil || current.Version != r.Version || current.CLI != 1 || !validVersion(current.Version) {
 		return fmt.Errorf("activation verification failed")
 	}
+	return finishOperation(root, command, r)
+}
+
+// finishOperation records a local receipt only when disk metadata matches the
+// completed operation. Read-only release audits never call this function.
+// It does not claim that a profile was migrated or that a GUI was launched.
+func finishOperation(root, command string, report *Report) error {
+	if command == "uninstall" {
+		if _, err := os.Lstat(filepath.Join(root, "current.json")); !os.IsNotExist(err) {
+			return fmt.Errorf("unregister verification failed")
+		}
+		if report != nil {
+			report.RuntimeProvisioned = false
+			report.Operation = &OperationReceipt{Command: command, Status: "completed", Installed: false, RuntimeProvisioned: false}
+		}
+		return nil
+	}
+	if report == nil || (command != "install" && command != "update") {
+		return fmt.Errorf("missing operation verification context")
+	}
+	var state struct {
+		Version string `json:"version"`
+		Folder  string `json:"folder"`
+		CLI     int    `json:"cliManaged"`
+		Runtime struct {
+			Node   string `json:"node"`
+			Binary string `json:"binarySha256"`
+		} `json:"runtime"`
+	}
+	data, err := os.ReadFile(filepath.Join(root, "current.json"))
+	if err != nil || len(data) > 65536 || json.Unmarshal(data, &state) != nil || state.CLI != 1 || state.Version != report.Version || !validVersion(state.Version) {
+		return fmt.Errorf("installed-state receipt verification failed")
+	}
+	if !safeEntry(state.Folder) || strings.Contains(state.Folder, "/") || !hashRE.MatchString(state.Runtime.Binary) || !strings.HasPrefix(state.Runtime.Node, root+string(os.PathSeparator)) || filepath.Clean(state.Runtime.Node) != state.Runtime.Node {
+		return fmt.Errorf("unsafe installed-state receipt")
+	}
+	nodeInfo, err := os.Lstat(state.Runtime.Node)
+	if err != nil || !nodeInfo.Mode().IsRegular() {
+		return fmt.Errorf("installed runtime missing or unsafe")
+	}
+	file, err := os.Open(state.Runtime.Node)
+	if err != nil {
+		return fmt.Errorf("installed runtime unreadable")
+	}
+	sha := sha256.New()
+	_, hashErr := io.Copy(sha, file)
+	closeErr := file.Close()
+	if hashErr != nil || closeErr != nil || hex.EncodeToString(sha.Sum(nil)) != state.Runtime.Binary {
+		return fmt.Errorf("installed runtime checksum mismatch")
+	}
+	// The source manager has already verified activation. The independent
+	// persisted metadata and private-runtime hash above establish the receipt.
+	report.RuntimeProvisioned = true
+	report.Operation = &OperationReceipt{Command: command, Status: "completed", Installed: true, RuntimeProvisioned: true}
 	return nil
 }
+
 func writeExclusive(path string, in io.Reader, mode os.FileMode) error {
 	f, e := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, mode)
 	if e != nil {
