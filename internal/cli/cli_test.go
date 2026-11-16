@@ -173,6 +173,11 @@ func TestFirstPartyExecutionRouting(t *testing.T) {
 			},
 			func(ctx context.Context, command string, r *personal.Report, root string, logs io.Writer) error {
 				calls++
+				if tc.exit == 0 {
+					installed := command != "uninstall"
+					r.RuntimeProvisioned = installed
+					r.Operation = &personal.OperationReceipt{Command: command, Status: "completed", Installed: installed, RuntimeProvisioned: installed}
+				}
 				return nil
 			})
 		if got != tc.exit || calls != tc.calls {
@@ -182,5 +187,98 @@ func TestFirstPartyExecutionRouting(t *testing.T) {
 		if json.Unmarshal(out.Bytes(), &result) != nil {
 			t.Fatal("invalid JSON")
 		}
+		if tc.exit == 0 && tc.calls > 0 {
+			if result.Personal == nil || result.Personal.Operation == nil || result.Personal.Operation.Command != strings.Fields(tc.args[0])[0] || result.Personal.Operation.Status != "completed" {
+				t.Fatalf("missing verified operation receipt: %+v", result.Personal)
+			}
+		}
+	}
+}
+
+
+// TestReadOnlyCompatibilityMessages proves that immutable source auditing
+// reports declared first-party compatibility without claiming installation.
+func TestReadOnlyCompatibilityMessages(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		compatible bool
+		args       []string
+		wantExit   int
+		wantText   string
+	}{
+		{"compatible", true, []string{"install", "personal", "--rc", "--check"}, 0, "first-party lifecycle compatibility"},
+		{"incompatible", false, []string{"install", "personal", "--rc", "--check"}, 0, "first-party lifecycle is unsupported"},
+		{"dry run", true, []string{"install", "personal", "--rc", "--dry-run"}, 3, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var out, diagnostic bytes.Buffer
+			calls := 0
+			audit := func(context.Context, personal.Selection) (*personal.Report, error) {
+				calls++
+				return &personal.Report{Version: "1.1.0-rc.4", Compatible: tc.compatible, SourceVerified: true}, nil
+			}
+			if got := run(append(tc.args, "--json"), &out, &diagnostic, audit); got != tc.wantExit {
+				t.Fatalf("exit=%d want=%d", got, tc.wantExit)
+			}
+			var result Result
+			if err := json.Unmarshal(out.Bytes(), &result); err != nil {
+				t.Fatal(err)
+			}
+			if calls != 1 || result.Personal == nil || result.Personal.Operation != nil || result.Personal.RuntimeProvisioned {
+				t.Fatalf("read-only audit fabricated an operation: %+v", result)
+			}
+			if tc.wantText != "" && !strings.Contains(result.Message, tc.wantText) {
+				t.Fatalf("wrong read-only message: %q", result.Message)
+			}
+			if tc.wantExit != 0 && (result.Error == nil || result.Error.Code != "unsupported_capability") {
+				t.Fatalf("wrong dry-run result: %+v", result.Error)
+			}
+		})
+	}
+}
+
+// Even a successful executor return must not claim success without a verified
+// operation receipt. A failed executor must not serialize a stale receipt.
+func TestMissingOrUnverifiedOperationReceipt(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	for _, tc := range []struct {
+		name    string
+		receipt *personal.OperationReceipt
+		failure bool
+	}{
+		{"missing", nil, false},
+		{"wrong command", &personal.OperationReceipt{Command: "uninstall", Status: "completed"}, false},
+		{"false runtime", &personal.OperationReceipt{Command: "install", Status: "completed", Installed: true}, false},
+		{"failure after report mutation", &personal.OperationReceipt{Command: "install", Status: "completed", Installed: true, RuntimeProvisioned: true}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var out, diagnostic bytes.Buffer
+			got := runLifecycle([]string{"install", "personal", "--rc", "--yes", "--json"}, &out, &diagnostic,
+				func(context.Context, personal.Selection) (*personal.Report, error) {
+					return &personal.Report{Version: "1.1.0-rc.4", Channel: "candidate", Compatible: true}, nil
+				},
+				func(_ context.Context, command string, report *personal.Report, _ string, _ io.Writer) error {
+					report.Operation = tc.receipt
+					if tc.receipt != nil {
+						report.RuntimeProvisioned = tc.receipt.RuntimeProvisioned
+					}
+					if tc.failure {
+						return errors.New("private-secret")
+					}
+					return nil
+				})
+			if got != 5 || diagnostic.Len() != 0 {
+				t.Fatalf("exit=%d diagnostic=%q", got, diagnostic.String())
+			}
+			var result Result
+			if err := json.Unmarshal(out.Bytes(), &result); err != nil {
+				t.Fatal(err)
+			}
+			if result.OK || result.Error == nil || result.Error.Code != "lifecycle_failed" || result.Personal == nil ||
+				result.Personal.Operation != nil || result.Personal.RuntimeProvisioned ||
+				strings.Contains(out.String(), "private-secret") {
+				t.Fatalf("false success or secret in JSON: %+v", result)
+			}
+		})
 	}
 }
