@@ -126,6 +126,15 @@ func TestVerifiedLifecycleOperationReceipts(t *testing.T) {
 	if err := os.Remove(current); err != nil {
 		t.Fatal(err)
 	}
+	// Missing active registration alone is insufficient: retained runtime
+	// files must prevent a false completed-uninstall receipt.
+	partial := &Report{Channel: "candidate"}
+	if err := finishOperation(root, "uninstall", partial); err == nil || partial.Operation != nil {
+		t.Fatal("incomplete owned-runtime cleanup accepted")
+	}
+	if err := os.RemoveAll(filepath.Join(root, "runtimes")); err != nil {
+		t.Fatal(err)
+	}
 	for i := 0; i < 2; i++ {
 		uninstalled := &Report{Channel: "candidate"}
 		if err := finishOperation(root, "uninstall", uninstalled); err != nil {
