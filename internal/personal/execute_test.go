@@ -62,7 +62,6 @@ func TestUninstallDoesNotCompareAnAbsentReleaseVersion(t *testing.T) {
 	}
 }
 
-
 // A completed real installation gets a receipt only if persisted active state
 // and the private Node binary are present and independently hash-verified.
 func TestVerifiedLifecycleOperationReceipts(t *testing.T) {
