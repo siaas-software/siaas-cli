@@ -27,4 +27,4 @@ SetupLogging=no
 [Files]
 Source: "..\dist\siaas.exe"; DestDir: "{app}\bin"; DestName: "siaas.exe"; Flags: ignoreversion
 [Icons]
-Name: "{autoprograms}\SIAAS CLI Preview"; Filename: "{cmd}"; Parameters: "/K {#33}{app}\bin\siaas.exe{#33} --help"; WorkingDir: "{app}\bin"
+Name: "{autoprograms}\SIAAS CLI Preview"; Filename: "{cmd}"; Parameters: "/K """"{app}\bin\siaas.exe"" --help"""; WorkingDir: "{app}\bin"
