@@ -289,8 +289,12 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 // It does not claim that a profile was migrated or that a GUI was launched.
 func finishOperation(root, command string, report *Report) error {
 	if command == "uninstall" {
-		if _, err := os.Lstat(filepath.Join(root, "current.json")); !os.IsNotExist(err) {
-			return fmt.Errorf("unregister verification failed")
+		// Completed uninstall cannot leave an owned application generation or
+		// runtime/cache behind. The profile, backups and owner receipt remain.
+		for _, name := range []string{"current.json", "versions", "runtimes", "build-home"} {
+			if _, err := os.Lstat(filepath.Join(root, name)); !os.IsNotExist(err) {
+				return fmt.Errorf("uninstall cleanup verification failed")
+			}
 		}
 		if report != nil {
 			report.RuntimeProvisioned = false
