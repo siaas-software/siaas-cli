@@ -195,7 +195,6 @@ func TestFirstPartyExecutionRouting(t *testing.T) {
 	}
 }
 
-
 // TestReadOnlyCompatibilityMessages proves that immutable source auditing
 // reports declared first-party compatibility without claiming installation.
 func TestReadOnlyCompatibilityMessages(t *testing.T) {
