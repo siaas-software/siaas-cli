@@ -1,6 +1,6 @@
 # M2 JSON reporting: release audit versus verified lifecycle receipt
 
-**Status:** proposed CLI contract fix, awaiting executable validation and review.  
+**Status:** JSON reporting acceptance **GO** on the reviewed CLI PR #6 code (2026-11-16); merge and broader M2 acceptance remain separate.  
 **Scope:** first-party SIAAS Personal lifecycle on Linux x64.  
 **Reference:** [M2 acceptance issue #2](https://github.com/siaas-software/siaas-cli/issues/2)
 and [Personal v1.1.0-rc.4](https://github.com/siaas-software/siaas-personal/releases/tag/v1.1.0-rc.4).
@@ -132,21 +132,45 @@ uninstall. Do not infer an installed version from its placeholder fields.
 
 ## Test and release scope
 
-The source PR adds unit tests for compatible/incompatible checks, read-only and
-dry-run paths, missing/wrong/stale receipts, installed runtime checksum
+The fix includes regression tests for compatible/incompatible checks, read-only
+and dry-run paths, missing/wrong/stale receipts, installed runtime checksum
 verification, symlink rejection, incomplete uninstall cleanup and repeated
-uninstall. These are **test cases, not evidence of passing runs**.
+uninstall.
 
-**Execution remains NOT RUN until a Go 1.27.3 environment is available.**
-Required prior to merge: `go test -count=1 ./...`,
-`go test -race -count=1 ./...`, `go vet ./...`, plus focused output tests.
-Record real command exits and output. A focused unprivileged Linux JSON native
-smoke is useful if a capable existing workspace is available; do not interpret
-source/static inspection as native acceptance.
+**Validated on 2026-11-16 (exact tested CLI source commit
+`af0239c9836095af3bcef6ebfdc4ad831da1dcd4`):**
 
-The preceding public RC4 install/reinstall/double-uninstall functional acceptance
-is **CONDITIONAL GO**. Public compatible RC-to-RC update still needs another
-compatible published Personal release; RC3 cannot supply it. Real Electron GUI,
-Ollama, Windows/macOS/ARM64 and power-loss/migration acceptance remain separate.
+- **Six-platform native CI PASS:** [GitHub workflow run #43837647182](https://github.com/siaas-software/siaas-cli/actions/runs/43837647182)
+  finished SUCCESS on Linux x64/ARM64, Windows x64/ARM64 and macOS
+  Intel/Apple Silicon with Go **1.27.3**. This includes `gofmt`,
+  `go vet ./...`, `go test -v -count=1 -timeout=8m ./...` and
+  platform-native CLI/offline-bootstrap checks.
+- **Race detector PASS:** `GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off
+  go test -race -count=1 ./...` returned exit **0** under Go 1.27.3
+  on Linux x64. The executing Codex workspace's exact command and result
+  are recorded in [PR #6 acceptance evidence](https://github.com/siaas-software/siaas-cli/pull/6#issuecomment-6913336628).
+- **Public RC4 JSON lifecycle PASS:** the real CLI compiled from that same
+  commit ran as UID 1000 with disposable HOME/cache against the published
+  immutable Personal v1.1.0-rc.4. All five commands exited 0: read-only
+  compatibility check (no receipt), initial/repeated install (completed
+  receipts, installed=true, runtimeProvisioned=true), initial/repeated
+  uninstall (completed removal receipts, both flags false). Private Node
+  binary SHA-256 and preservation of candidate profile/backup and unrelated
+  Stable/Ollama sentinels were checked. Full command JSON and evidence:
+  [PR #6 acceptance](https://github.com/siaas-software/siaas-cli/pull/6#issuecomment-6913336628).
 
-**Do not merge this PR or alter releases before executable tests and review.**
+**Evidence scope:** GitHub's six CI conclusions were read back independently;
+race and public-smoke results came from the executing Codex workspace and
+were not rerun in the connector session. The source files underlying the
+accepted CLI tests were not changed in this documentation-only follow-up.
+
+**Limitations:** This is GO for the **JSON reporting fix** and for the
+previously missing public Linux x64 install/reinstall/uninstall JSON acceptance,
+**not** a completion of M2 as a whole. Public compatible RC-to-RC update
+remains NOT RUN until a second compatible published Personal RC exists
+(historical RC3 is incompatible). Actual Electron GUI startup, real Ollama,
+first-party Personal lifecycle on Windows/macOS/ARM64, and migration/power-loss
+acceptance remain distinct.
+
+Integration into protected `main` must use the repository's PR and review
+rules. No changes to immutable Personal RC4 or release protection are implied.
