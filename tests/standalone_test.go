@@ -124,10 +124,13 @@ func TestStandaloneWithoutRuntime(t *testing.T) {
 }
 
 func TestStandaloneExitCodes(t *testing.T) {
+	// Keep exit-code smoke tests independent of network conditions.
+	// Install requests may audit the public release before selecting an error;
+	// rollback is deterministically unsupported without a remote lookup.
 	for _, tc := range []struct {
 		args []string
 		exit int
-	}{{[]string{"--help"}, 0}, {[]string{"help"}, 0}, {[]string{"--json", "unknown"}, 2}, {[]string{"--json", "install", "personal"}, 3}} {
+	}{{[]string{"--help"}, 0}, {[]string{"help"}, 0}, {[]string{"--json", "unknown"}, 2}, {[]string{"--json", "rollback", "personal"}, 3}} {
 		cmd := exec.Command(binary, tc.args...)
 		out, err := cmd.CombinedOutput()
 		code := 0
