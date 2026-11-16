@@ -1,18 +1,25 @@
 > Linux backend native lifecycle evidence: [successful cycle and limits](docs/m2-native-success.md).
-> Public CLI install/update acceptance still requires a compatible release.
+> Public Personal RC4 Linux x64 install/reinstall/uninstall has been demonstrated
+> using the compiled CLI; M2 remains conditional on truthful JSON reporting
+> and a future compatible public RC-to-RC update. See [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
 
 > Earlier blocked attempt: [historical first-party M2 report](docs/m2-working-lifecycle.md).
 
 # SIAAS CLI
 
-A standalone, local command-line application that will manage SIAAS products.
-This repository is independent of `siaas-personal`. **M1 implements only the
-CLI foundation and installation of the CLI itself.** It does not install, start,
-stop, update or inspect local Personal installations. This branch adds read-only
-verification of published Personal source releases; it does not complete M2.
+A standalone, local command-line application for managing SIAAS products.
+This repository is independent of `siaas-personal`. M1 established the CLI
+foundation; M2 adds first-party Personal installation, update and uninstall
+for **Linux x64**, but not generic cross-platform lifecycle management.
+Public immutable Personal RC4 installation and repeated uninstall have passed
+native acceptance on a disposable Linux x64 host. Public RC-to-RC update,
+native GUI and other platforms remain separate, uncompleted acceptance.
 
-End users run one executable. **Node.js, npm, Electron, Docker, Ollama and Go are
-not runtime prerequisites.** Developers use Go to build and test it.
+End users run one CLI executable. **Node.js, npm, Electron, Docker, Ollama and Go
+are not prerequisites for launching the CLI.** Official Personal installation
+provisions a verified private Node runtime and builds the reviewed application
+as the unprivileged invoking user; it does not launch Electron or Ollama.
+Developers use Go to build and test the CLI.
 
 ## Commands
 
@@ -24,16 +31,21 @@ siaas --version --json
 siaas --help --json
 siaas install personal --check
 siaas install personal --rc --check
-siaas install personal --version 1.1.0-rc.3 --check --json
+siaas install personal --version 1.1.0-rc.4 --check --json
+siaas install personal --rc --yes --json
+siaas uninstall personal --rc --yes --json
 ```
 
 No arguments displays help. `--json` may precede or follow the command. Duplicate
 `--json`, unknown options, ambiguous combinations and unsupported commands fail.
 Arguments are never echoed in errors, avoiding accidental disclosure of tokens,
-credential-bearing URLs and private paths. Release checks contact fixed public
-GitHub HTTPS endpoints and verify source archives in bounded memory. They do not
-extract or execute source, provision Node, inspect profiles or write installations.
-No token, alternate publisher or endpoint override is accepted.
+credential-bearing URLs and private paths. Read-only release checks contact
+fixed public GitHub HTTPS endpoints and verify source archives in bounded memory.
+They do not extract source, provision Node or write installations.
+Mutating first-party commands require explicit `--yes`, verified compatible
+immutable releases and safe CLI ownership; they execute the reviewed Personal
+engine under ordinary user permissions. No arbitrary repository, token, publisher
+or endpoint override is accepted.
 
 | Exit | Meaning |
 | --- | --- |
@@ -56,10 +68,11 @@ notice; `--version` remains short.
 {"schemaVersion":1,"ok":true,"command":"version","version":"0.1.0","message":"siaas 0.1.0"}
 ```
 
-Mutating Personal commands validate their options and then return exit **3**
-(`unsupported_capability`); invalid options return **2**. `--yes` cannot bypass
-the missing backend. `--purge` is explicitly rejected. Other lifecycle commands
-remain reserved:
+Mutating Personal commands verify the official first-party capability and
+require `--yes` on supported Linux x64 targets. Unsupported legacy releases or
+platforms return exit **3** (`unsupported_capability`); invalid options return
+**2**. `--yes` never bypasses verification. `--purge` is explicitly rejected.
+Other lifecycle commands remain reserved:
 
 ```text
 siaas install personal
@@ -75,16 +88,21 @@ siaas doctor personal
 siaas list
 ```
 
-They do not report success or perform partial lifecycle operations. The intended
-[product manifest/API contract](docs/product-manifest-contract.md) is documentation
-only. The source-release verifier does not implement that future execution contract.
+The supported first-party Linux x64 installation/update/uninstall commands
+do not imply availability of the reserved start/stop/rollback/doctor actions.
+The [product manifest/API contract](docs/product-manifest-contract.md) remains
+reference architecture rather than a generic third-party execution adapter.
 
-A successful `--check` includes `personal.compatible: false` and
-`runtimeProvisioned: false`; it is not an update applicability check. `--dry-run`
-verifies the same release but returns exit 3 because execution is unavailable.
-Latest-channel lookup selects the highest stable/RC version without silently
-falling back. Future compatible-release negotiation is still blocked. See the
-[implementation and acceptance report](docs/m2-lifecycle-progress.md).
+A successful `--check` reports verified source integrity and the selected
+release's actual `personal.compatible` value. It performs no installation;
+`runtimeProvisioned: false` on the audit does not establish that no previous
+installation exists. `--dry-run` verifies release availability but currently
+returns exit 3 because execution planning is not implemented. A completed
+mutating action must additionally verify its local operation receipt, including
+the private runtime's persisted checksum after installation. See
+[JSON lifecycle reporting](docs/m2-json-reporting.md) for the proposed contract
+fix. Public compatible RC-to-RC update acceptance remains pending another
+compatible release; RC3 is not an eligible baseline.
 
 ## Develop and validate locally
 
