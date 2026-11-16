@@ -64,25 +64,37 @@ type release struct {
 	Assets     []Asset `json:"assets"`
 }
 type Selection struct{ Version, Channel, Platform, Arch string }
+
+// OperationReceipt is populated only after the Personal engine finishes and
+// the CLI independently verifies the resulting local registration/runtime.
+// It is absent from read-only release audits and unsuccessful operations.
+type OperationReceipt struct {
+	Command            string `json:"command"`
+	Status             string `json:"status"`
+	Installed          bool   `json:"installed"`
+	RuntimeProvisioned bool   `json:"runtimeProvisioned"`
+}
+
 type Report struct {
 	source      []byte
 	runtimeSpec manifest
 
-	Repository         string `json:"repository"`
-	Version            string `json:"version"`
-	Channel            string `json:"channel"`
-	Platform           string `json:"platform"`
-	Arch               string `json:"arch"`
-	ReleaseID          int64  `json:"releaseId"`
-	Commit             string `json:"commit"`
-	Immutable          bool   `json:"immutable"`
-	SourceSHA256       string `json:"sourceSha256"`
-	SourceSize         int64  `json:"sourceSize"`
-	SourceVerified     bool   `json:"sourceVerified"`
-	RuntimeVersion     string `json:"runtimeVersion"`
-	RuntimeProvisioned bool   `json:"runtimeProvisioned"`
-	Compatible         bool   `json:"compatible"`
-	Blocker            string `json:"blocker"`
+	Repository         string            `json:"repository"`
+	Version            string            `json:"version"`
+	Channel            string            `json:"channel"`
+	Platform           string            `json:"platform"`
+	Arch               string            `json:"arch"`
+	ReleaseID          int64             `json:"releaseId"`
+	Commit             string            `json:"commit"`
+	Immutable          bool              `json:"immutable"`
+	SourceSHA256       string            `json:"sourceSha256"`
+	SourceSize         int64             `json:"sourceSize"`
+	SourceVerified     bool              `json:"sourceVerified"`
+	RuntimeVersion     string            `json:"runtimeVersion"`
+	RuntimeProvisioned bool              `json:"runtimeProvisioned"`
+	Compatible         bool              `json:"compatible"`
+	Blocker            string            `json:"blocker"`
+	Operation          *OperationReceipt `json:"operation,omitempty"`
 }
 
 // Client has no public endpoint override or credential option. Tests replace only
