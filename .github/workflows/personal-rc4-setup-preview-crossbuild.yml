@@ -27,6 +27,11 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
+      - name: Checkout reviewed PR QA helper (no credentials)
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: cli-tools
+          persist-credentials: false
       - name: Checkout pinned public Personal RC4 source (not CLI)
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -79,15 +84,18 @@ jobs:
       - name: Validate TypeScript
         working-directory: personal
         run: npm run typecheck
+      - name: Isolate test app and user data from any Stable installation
+        shell: pwsh
+        run: '& ./cli-tools/setup/isolate-personal-rc4-preview.ps1 -PersonalDir ./personal'
       - name: Build Windows one-file Personal installer
         working-directory: personal
-        run: npm run desktop:package -- --x64
+        run: npm run desktop:build && npm run desktop:prepare && npx --no-install electron-builder --config electron-builder.preview.cjs --publish never --x64
       - name: Verify and log setup digest
         shell: pwsh
         working-directory: personal
         run: |
           $ErrorActionPreference = 'Stop'
-          $files = @(Get-ChildItem -LiteralPath dist -Filter 'SIAAS-Personal-1.1.0-rc.4-*.exe' -File)
+          $files = @(Get-ChildItem -LiteralPath dist -Filter 'SIAAS-Personal-RC4-Preview-1.1.0-rc.4-*.exe' -File)
           if ($files.Count -ne 1 -or $files[0].Length -lt 1000000) { throw 'Expected exactly one Personal RC4 setup EXE' }
           Write-Host "File: $($files[0].Name)"
           Write-Host "Bytes: $($files[0].Length)"
@@ -95,7 +103,7 @@ jobs:
       - name: Upload Personal-only unsigned preview setup
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: SIAAS-Personal-RC4-Windows-x64-Preview-Unsigned-Crossbuild
-          path: personal/dist/SIAAS-Personal-1.1.0-rc.4-*.exe
+          name: SIAAS-Personal-RC4-Windows-x64-Isolated-Preview-Unsigned
+          path: personal/dist/SIAAS-Personal-RC4-Preview-1.1.0-rc.4-*.exe
           if-no-files-found: error
           retention-days: 14
