@@ -1,5 +1,5 @@
-// Package cli implements standalone commands and read-only Personal release verification.
-// Product execution remains unavailable until a verified lifecycle backend exists.
+// Package cli implements standalone commands, read-only Personal verification,
+// and the verified Linux x64 first-party Personal lifecycle.
 package cli
 
 import (
@@ -30,11 +30,15 @@ Usage: siaas [--json] [--help | --version | help]
 Personal release verification (read-only):
   install personal --check [--rc | --version VERSION]
   update personal --check [--rc | --version VERSION]
-  --dry-run performs the same verification but fails if execution is unavailable.
-Checks verify published source integrity, not installation compatibility or updates
-to local state. Current published releases have no first-party M2 entry point. Future verified
-Linux x64 first-party install/update/uninstall requires --yes. Rollback is unsupported.
-No legacy adoption, GUI startup, profile access or --purge is performed.
+  --dry-run verifies source but planning is not yet supported.
+
+First-party Personal lifecycle (Linux x64, explicit consent):
+  install personal --rc --yes
+  update personal --rc --yes
+  uninstall personal --rc --yes
+Checks verify immutable release identity and declared lifecycle compatibility.
+Only completed verified operations produce an installation receipt. No GUI launch,
+unrelated profile adoption or --purge is performed. Rollback is unsupported.
 No Node.js, npm, Electron, Docker or Ollama installation is needed to run this CLI.
 Exit codes: 0 success; 1 output/internal failure; 2 invalid usage;
             3 unsupported capability; 4 release/network/integrity verification failed.
@@ -137,14 +141,20 @@ func runLifecycle(args []string, stdout, stderr io.Writer, audit func(context.Co
 							}
 							if e != nil {
 								fail(5, "lifecycle_failed", "Personal lifecycle operation failed. Inspect build diagnostics and retained locks; user data is preserved.")
+							} else if report.Operation == nil || report.Operation.Command != request.Command || report.Operation.Status != "completed" || report.Operation.Installed != (request.Command != "uninstall") || report.Operation.RuntimeProvisioned != (request.Command != "uninstall") || report.RuntimeProvisioned != report.Operation.RuntimeProvisioned {
+								fail(5, "lifecycle_failed", "Personal lifecycle completed without a verified operation receipt; inspect installed state.")
 							} else {
 								r.Message = "Personal " + request.Command + " completed."
 							}
 						}
+					} else if request.DryRun {
+						fail(3, "unsupported_capability", "Dry-run lifecycle planning is not implemented. Release verification made no changes.")
 					} else if !request.Check {
 						fail(3, "unsupported_capability", "Verified source bytes are not an accepted lifecycle adapter. No changes were made.")
+					} else if report.Compatible {
+						r.Message = "Verified Personal " + report.Version + " source and first-party lifecycle compatibility. No installation was performed."
 					} else {
-						r.Message = "Verified Personal " + report.Version + " source integrity; lifecycle execution remains unsupported. No installation was performed."
+						r.Message = "Verified Personal " + report.Version + " source integrity; first-party lifecycle is unsupported for this release or platform. No installation was performed."
 					}
 				}
 			}
