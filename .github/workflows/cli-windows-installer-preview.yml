@@ -1,0 +1,99 @@
+name: CLI Windows installer preview (M2 branch build)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cli-windows-installer-preview.yml'
+      - 'setup/**'
+      - 'docs/installer-preview.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cli-setup-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x64:
+    if: github.repository == 'siaas-software/siaas-cli'
+    name: Build and smoke CLI-only preview setup
+    runs-on: windows-2022
+    timeout-minutes: 35
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: 'off'
+      GOSUMDB: 'off'
+      GOENV: 'off'
+      GOTELEMETRY: 'off'
+    steps:
+      - name: Checkout reviewed CLI PR source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install pinned Go compiler
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: .go-version
+          architecture: x64
+          cache: false
+          check-latest: false
+      - name: Go tests and deterministic CLI binary
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go version
+          go test -count=1 ./...
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          go build -trimpath -buildvcs=false -ldflags="-s -w -buildid=" -o dist/siaas.exe ./cmd/siaas
+          if ($LASTEXITCODE -ne 0) { throw 'CLI binary build failed' }
+          & ./dist/siaas.exe --version
+          if ($LASTEXITCODE -ne 0) { throw 'CLI version check failed' }
+      - name: Build self-contained per-user Windows setup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path -LiteralPath $compiler)) {
+            throw 'Inno Setup 6 compiler is not installed on this Windows runner; no setup output is trusted.'
+          }
+          & $compiler /Q setup/windows-preview.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with code $LASTEXITCODE" }
+          $setup = 'dist/setup/SIAAS-CLI-Setup-preview-windows-amd64.exe'
+          if (-not (Test-Path -LiteralPath $setup)) { throw 'CLI installer missing' }
+          $f = Get-Item -LiteralPath $setup
+          if ($f.Length -lt 100000) { throw 'Installer too small' }
+          Get-FileHash -LiteralPath $setup -Algorithm SHA256 | Format-List
+      - name: Native isolated install, reinstall, uninstall smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Resolve-Path 'dist/setup/SIAAS-CLI-Setup-preview-windows-amd64.exe').Path
+          $root = Join-Path $env:RUNNER_TEMP 'SIAAS-CLI-Preview-Install'
+          $sentinel = Join-Path $env:RUNNER_TEMP 'unrelated-personal-sentinel.txt'
+          if (Test-Path -LiteralPath $root) { throw 'Fixture target not isolated' }
+          Set-Content -LiteralPath $sentinel -Value 'preserve' -NoNewline
+          foreach ($attempt in 1..2) {
+            $p = Start-Process -FilePath $setup -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-',"/DIR=$root") -Wait -PassThru
+            if ($p.ExitCode -ne 0) { throw "Setup attempt $attempt failed: $($p.ExitCode)" }
+            $exe = Join-Path $root 'bin/siaas.exe'
+            if (-not (Test-Path -LiteralPath $exe)) { throw 'Installed CLI binary missing' }
+            $result = & $exe --version
+            if ($LASTEXITCODE -ne 0 -or $result -notmatch 'siaas 0\.1\.0') { throw 'CLI version execution failed' }
+          }
+          $uninstall = Join-Path $root 'unins000.exe'
+          if (-not (Test-Path -LiteralPath $uninstall)) { throw 'Uninstaller missing' }
+          $u = Start-Process -FilePath $uninstall -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru
+          if ($u.ExitCode -ne 0) { throw "Uninstall failed: $($u.ExitCode)" }
+          if (Test-Path -LiteralPath (Join-Path $root 'bin/siaas.exe')) { throw 'CLI file survived uninstall' }
+          if ((Get-Content -LiteralPath $sentinel -Raw) -ne 'preserve') { throw 'Unrelated sentinel changed' }
+          Write-Host 'PASS: CLI-only isolated native install, reinstall, version, uninstall, unrelated sentinel.'
+      - name: Upload temporary unsigned installer
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: SIAAS-CLI-M2-Windows-x64-Preview-Unsigned
+          path: dist/setup/SIAAS-CLI-Setup-preview-windows-amd64.exe
+          if-no-files-found: error
+          retention-days: 14
