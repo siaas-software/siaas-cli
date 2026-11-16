@@ -65,7 +65,11 @@ func TestUninstallDoesNotCompareAnAbsentReleaseVersion(t *testing.T) {
 // A completed real installation gets a receipt only if persisted active state
 // and the private Node binary are present and independently hash-verified.
 func TestVerifiedLifecycleOperationReceipts(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "candidate")
+	base, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := filepath.Join(base, "candidate")
 	node := filepath.Join(root, "runtimes", "node")
 	if err := os.MkdirAll(filepath.Dir(node), 0700); err != nil {
 		t.Fatal(err)
@@ -148,7 +152,11 @@ func TestVerifiedLifecycleOperationReceipts(t *testing.T) {
 }
 
 func TestVerifiedReceiptRejectsRuntimeLinks(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "candidate")
+	base, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := filepath.Join(base, "candidate")
 	if err := os.MkdirAll(root, 0700); err != nil {
 		t.Fatal(err)
 	}
