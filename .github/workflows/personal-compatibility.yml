@@ -1,0 +1,66 @@
+name: Personal release compatibility review
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-compatibility-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  copied-profile:
+    if: github.repository == 'siaas-software/siaas-cli' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Provision official pinned Node runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=$(mktemp -d)
+          cd "$root"
+          base=https://nodejs.org/dist/v24.22.0
+          name=node-v24.22.0-linux-x64.tar.gz
+          curl --fail --silent --show-error --proto '=https' "$base/SHASUMS256.txt" -o SHASUMS256.txt
+          curl --fail --silent --show-error --proto '=https' "$base/$name" -o "$name"
+          grep -E "^[a-f0-9]{64}  $name$" SHASUMS256.txt > selected.sha256
+          test "$(wc -l < selected.sha256)" -eq 1
+          sha256sum --check selected.sha256
+          tar -xzf "$name"
+          echo "$root/node-v24.22.0-linux-x64/bin" >> "$GITHUB_PATH"
+      - name: RC4 to RC5 copied-profile migration fixture
+        run: bash tests/rc4-rc5-profile.sh
+
+  public-lifecycle:
+    needs: copied-profile
+    if: github.repository == 'siaas-software/siaas-cli' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: 'off'
+      GOSUMDB: 'off'
+      GOTELEMETRY: 'off'
+      GOENV: 'off'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version-file: .go-version
+          cache: false
+          check-latest: false
+      - name: Validate pinned Go source and race detector
+        run: |
+          test -z "$(gofmt -l cmd internal tools tests)"
+          go vet ./...
+          go test -race -count=1 -timeout=8m ./...
+      - name: Public compiled CLI lifecycle
+        run: bash tests/public-rc4-rc5-lifecycle.sh

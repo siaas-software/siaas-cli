@@ -155,9 +155,18 @@ func (c *Client) Execute(ctx context.Context, command string, r *Report, root st
 	if command != "uninstall" && active && r != nil && newer(current.Version, r.Version) {
 		return fmt.Errorf("downgrade refused")
 	}
+	// A newer release is an update, even if requested through install.
+	// Require the explicit update command so the migration guard, backup
+	// and profile postcondition cannot be bypassed.
+	if command == "install" && active && newer(r.Version, current.Version) {
+		return fmt.Errorf("newer release requires explicit update")
+	}
+	if command == "update" && (!safeEntry(current.Folder) || strings.Contains(current.Folder, "/")) {
+		return fmt.Errorf("unsafe installed metadata")
+	}
 	var before map[string]string
 	if command == "update" {
-		if e = requireSameDataCode(root, current.Folder, r.source); e != nil {
+		if e = c.requireCompatibleDataCode(ctx, root, current.Folder, current.Version, r); e != nil {
 			return e
 		}
 		before, e = profileSnapshot(root)

@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 //go:embed NOTICE.txt
 var runtimeNotice string
@@ -41,7 +41,8 @@ Only completed verified operations produce an installation receipt. No GUI launc
 unrelated profile adoption or --purge is performed. Rollback is unsupported.
 No Node.js, npm, Electron, Docker or Ollama installation is needed to run this CLI.
 Exit codes: 0 success; 1 output/internal failure; 2 invalid usage;
-            3 unsupported capability; 4 release/network/integrity verification failed.
+            3 unsupported capability; 4 release/network/integrity verification failed;
+            5 lifecycle operation or postcondition verification failed.
 `
 
 type Problem struct {
