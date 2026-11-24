@@ -26,8 +26,12 @@ try {
     const d = db.put("documents", { tenant_id, assistant_id: a.id, title: "Existing document", kind: "text", raw_text: "Preserve this document" });
     const c = db.put("conversations", { tenant_id, assistant_id: a.id, title: "Existing conversation" });
     db.put("messages", { tenant_id, assistant_id: a.id, conversation_id: c.id, role: "user", content: "Preserve this message" });
-    const file = tenant_id + "/" + a.id + "/migration-fixture.txt";
+    // Use the product's canonical managed document path, not an arbitrary
+    // legacy filename (which must be a UUID). Associate the file with its row.
+    const file = db.managedPath(a.id, d.id, "Existing document", "txt");
     db.saveFile(file, Buffer.from("Preserve this file"));
+    db.put("documents", { ...d, kind: "txt", storage_path: file }, true);
+    db.syncKnowledgeFiles(a.id);
     verifyIntegrity(db);
     writeFileSync(expectedPath, JSON.stringify({ rows: snapshot(db), file, project: p.id, document: d.id }));
   } else {
