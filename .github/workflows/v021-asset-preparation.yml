@@ -1,0 +1,87 @@
+name: SIAAS CLI v0.2.1 release assets (manual publication)
+
+on:
+  push:
+    branches: [release/0.2.1-assets]
+    paths: ['.github/workflows/v021-asset-preparation.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v021-asset-preparation
+  cancel-in-progress: true
+
+jobs:
+  assemble:
+    if: github.repository == 'siaas-software/siaas-cli' && github.event.repository.private == false && github.ref == 'refs/heads/release/0.2.1-assets'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: 'off'
+      GOSUMDB: 'off'
+      GOTELEMETRY: 'off'
+      GOENV: 'off'
+      SOURCE_COMMIT: c1c5e3ec0d6bbfd86b06f388e1204d231866fdc5
+      TESTED_TREE: f9f25889f50c7377930cc8c9331c0f5aab9fe9cc
+    steps:
+      - name: Checkout exact integrated and accepted source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: c1c5e3ec0d6bbfd86b06f388e1204d231866fdc5
+          persist-credentials: false
+      - name: Use pinned Go toolchain
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version-file: .go-version
+          cache: false
+          check-latest: false
+      - name: Assemble and verify unsigned release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$TESTED_TREE"
+          test "$(go version | cut -d ' ' -f 3)" = go1.27.3
+          bash tools/prepare-release.sh dist/v0.2.1
+          cd dist/v0.2.1
+          # Append exact acceptance evidence to the candidate release notes.
+          printf '\n## Validation\n\nAll seven jobs passed: https://github.com/siaas-software/siaas-cli/actions/runs/45403602878 . Windows x64 and ARM64 passed PowerShell 5.1 and 7 session/PATH regression and standard-user checks. Integrated source commit: %s; tree matches tested source.\n' "$SOURCE_COMMIT" >> RELEASE_NOTES.md
+          sed -i '/  RELEASE_NOTES.md$/d' SHA256SUMS
+          sha256sum RELEASE_NOTES.md >> SHA256SUMS
+          sha256sum --check SHA256SUMS
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          root=Path(".")
+          expected={"cli-release-v1.txt","GO-LICENSE.txt","install.ps1","install.sh","RELEASE_NOTES.md","SHA256SUMS"}
+          targets={(o,a) for o in ("linux","darwin","windows") for a in ("amd64","arm64")}
+          expected|={f"siaas-cli_0.2.1_{o}_{a}"+(".exe" if o=="windows" else "") for o,a in targets}
+          assert {p.name for p in root.iterdir()}==expected
+          lines=(root/"cli-release-v1.txt").read_text().splitlines()
+          assert lines[0]=="siaas-cli-release-v1 0.2.1" and len(lines)==7
+          seen=set()
+          for line in lines[1:]:
+              o,a,name,digest,size=line.split()
+              assert (o,a) in targets and (o,a) not in seen
+              assert name==f"siaas-cli_0.2.1_{o}_{a}"+(".exe" if o=="windows" else "")
+              seen.add((o,a))
+              b=(root/name).read_bytes()
+              assert len(b)==int(size) and hashlib.sha256(b).hexdigest()==digest
+          sums=(root/"SHA256SUMS").read_text().splitlines()
+          assert len(sums)==11 and {line.split("  ",1)[1] for line in sums}==expected-{"SHA256SUMS"}
+          print("PASS: all 12 assets, six manifest rows and 11 checksum entries verified.")
+          PY
+          ./siaas-cli_0.2.1_linux_amd64 --version
+          ./siaas-cli_0.2.1_linux_amd64 --version --json | python3 -c 'import json,sys; r=json.load(sys.stdin); assert r["ok"] and r["version"]=="0.2.1"'
+          printf 'Verified source commit: %s\n' "$SOURCE_COMMIT"
+      - name: Upload candidate bundle for maintainer download (not a release)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: siaas-cli-v0.2.1-verified-assets
+          path: dist/v0.2.1/*
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
