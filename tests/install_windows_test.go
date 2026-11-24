@@ -118,9 +118,9 @@ func winFixture(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := "siaas-cli_0.2.0_windows_" + runtime.GOARCH + ".exe"
+	name := "siaas-cli_0.2.1_windows_" + runtime.GOARCH + ".exe"
 	winWrite(t, filepath.Join(dir, name), data)
-	winWrite(t, filepath.Join(dir, "cli-release-v1.txt"), []byte(fmt.Sprintf("siaas-cli-release-v1 0.2.0\nwindows %s %s %x %d\n", runtime.GOARCH, name, sha256.Sum256(data), len(data))))
+	winWrite(t, filepath.Join(dir, "cli-release-v1.txt"), []byte(fmt.Sprintf("siaas-cli-release-v1 0.2.1\nwindows %s %s %x %d\n", runtime.GOARCH, name, sha256.Sum256(data), len(data))))
 	return dir, name
 }
 
@@ -216,7 +216,7 @@ func TestWindowsBootstrap(t *testing.T) {
 	}
 	installed := exec.Command(filepath.Join(dir, "siaas.exe"), "--version", "--json")
 	installed.Env = []string{"PATH=" + filepath.Join(dir, "empty"), "SystemRoot=" + os.Getenv("SystemRoot")}
-	if out, err := installed.CombinedOutput(); err != nil || !strings.Contains(string(out), `"version":"0.2.0"`) {
+	if out, err := installed.CombinedOutput(); err != nil || !strings.Contains(string(out), `"version":"0.2.1"`) {
 		t.Fatalf("installed standalone CLI: %s %v", out, err)
 	}
 	if code, out := winInstall(t, dir, source); code != 0 || !strings.Contains(out, "already installed") {

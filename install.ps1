@@ -1,15 +1,20 @@
 # SIAAS CLI bootstrap. PowerShell 5.1+; no administrator privileges or product install.
+# Recognize this file's own invocation, not the caller of Invoke-Expression.
+$siaasCliFileInvocation = ($MyInvocation.MyCommand -is [System.Management.Automation.ExternalScriptInfo] -and $MyInvocation.InvocationName -ne '.' -and $MyInvocation.MyCommand.ScriptBlock.Ast.EndBlock.Statements[0].Extent.Text.StartsWith('$siaasCliFileInvocation ='))
+& {
 $InstallDir = ''
+$PathMode = ''
+$DefaultDestination = $false
 $FromDir = ''
 $Help = $false
 $ErrorActionPreference = 'Stop'
-$script:ResultCode = 1
+$siaasInstallState = @{Code = 1}
 $stage = $null
 $lockStream = $null
 $lockPath = $null
 $oldTLS = [Net.ServicePointManager]::SecurityProtocol
 function Fail([int]$Code, [string]$Message) {
-    $script:ResultCode = $Code
+    $siaasInstallState.Code = $Code
     throw [InvalidOperationException]::new($Message)
 }
 function Test-TrustedReleaseUri([Uri]$Uri) {
@@ -78,10 +83,61 @@ function Get-Artifact([string]$Name, [string]$Destination, [long]$Limit, [string
     }
     Fail 7 'Too many release redirects. Existing CLI preserved.'
 }
+# Preserve the raw user PATH, registry type, existing order and variable references.
+function Test-PathEntry([string]$Value, [string]$Directory) {
+    foreach ($entry in $Value.Split(';')) {
+        $expanded = [Environment]::ExpandEnvironmentVariables($entry.Trim().Trim('"')).TrimEnd('\','/')
+        if ([string]::Equals($expanded, $Directory, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    }
+    return $false
+}
+function Add-CliUserPath([string]$Directory) {
+    if ($Directory -match '[;%]') { Fail 6 'CLI installed; directory cannot safely be added to PATH.' }
+    $key = [Microsoft.Win32.Registry]::CurrentUser.CreateSubKey('Environment')
+    try {
+        $raw = $key.GetValue('Path', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+        if ($raw -isnot [string]) { Fail 6 'CLI installed; unexpected user PATH type.' }
+        $kind = if ($key.GetValueNames() -contains 'Path') { $key.GetValueKind('Path') } else { [Microsoft.Win32.RegistryValueKind]::String }
+        if ($kind -notin @([Microsoft.Win32.RegistryValueKind]::String,[Microsoft.Win32.RegistryValueKind]::ExpandString)) { Fail 6 'CLI installed; unexpected user PATH type.' }
+        if (-not (Test-PathEntry $raw $Directory)) {
+            $next = if (-not $raw -or $raw.EndsWith(';')) { $raw + $Directory } else { $raw + ';' + $Directory }
+            if ($next.Length -gt 32767) { Fail 6 'CLI installed; user PATH is too long.' }
+            $key.SetValue('Path', $next, $kind)
+        }
+    } finally { $key.Dispose() }
+    if (-not (Test-PathEntry ([string]$env:Path) $Directory)) {
+        $env:Path = if (-not $env:Path -or $env:Path.EndsWith(';')) { $env:Path + $Directory } else { $env:Path + ';' + $Directory }
+    }
+    Write-Output 'SIAAS CLI directory is on user and current process PATH.'
+    try {
+        if (-not ('SiaasCli.EnvironmentNotification' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+namespace SiaasCli {
+    public static class EnvironmentNotification {
+        [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+        public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg, UIntPtr wParam, string lParam, uint flags, uint timeout, out UIntPtr result);
+    }
+}
+'@
+        }
+        $notification = [UIntPtr]::Zero
+        $null = [SiaasCli.EnvironmentNotification]::SendMessageTimeout([IntPtr]0xffff, 0x1a, [UIntPtr]::Zero, 'Environment', 2, 1000, [ref]$notification)
+    } catch { Write-Output 'User PATH saved; restart the terminal launcher or sign out if needed.' }
+    $command = Get-Command siaas -ErrorAction SilentlyContinue
+    if ($command -and ($command.CommandType -ne 'Application' -or -not [string]::Equals($command.Source, (Join-Path $Directory 'siaas.exe'), [StringComparison]::OrdinalIgnoreCase))) {
+        Write-Output 'Another command named siaas takes precedence. Use the installed executable directly; existing PATH order was preserved.'
+    }
+}
 try {
     # Parse manually so PowerShell's parameter binder cannot echo unknown secret arguments.
     for ($index = 0; $index -lt $args.Count; $index++) {
         switch ($args[$index]) {
+            { $_ -in @('-AddToPath','-NoPath') } {
+                if ($PathMode) { Fail 2 'Use only one PATH option.' }
+                $PathMode = [string]$_
+            }
             '-Help' { if ($args.Count -ne 1) { Fail 2 'Use -Help alone.' }; $Help = $true }
             { $_ -in @('-InstallDir','-FromDir') } {
                 $option = $args[$index]
@@ -93,15 +149,16 @@ try {
         }
     }
     if ($Help) {
-        Write-Output 'Usage: .\install.ps1 [-InstallDir ABSOLUTE_PATH] [-FromDir LOCAL_RELEASE_DIRECTORY]'
+        Write-Output 'Usage: .\install.ps1 [-InstallDir ABSOLUTE_PATH] [-FromDir LOCAL_RELEASE_DIRECTORY] [-AddToPath | -NoPath]'
         Write-Output 'Installs SIAAS CLI itself; no product version is required. -FromDir explicitly trusts local metadata.'
-        $script:ResultCode = 0
+        $siaasInstallState.Code = 0
     } else {
         if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { Fail 2 'This bootstrap requires Windows. Use install.sh on Linux or macOS.' }
         $machine = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
         $arch = switch ($machine) { 'AMD64' { 'amd64' } 'ARM64' { 'arm64' } default { Fail 2 'Supported Windows architectures are x64 and arm64.' } }
         if (-not $InstallDir) { $InstallDir = $env:SIAAS_CLI_INSTALL_DIR }
         if (-not $InstallDir) {
+            $DefaultDestination = $true
             if (-not $env:LOCALAPPDATA) { Fail 2 'LOCALAPPDATA is unavailable. Choose an explicit user-owned install directory.' }
             $InstallDir = [IO.Path]::Combine($env:LOCALAPPDATA, 'SIAAS CLI', 'bin')
         }
@@ -166,20 +223,28 @@ try {
             [IO.File]::Move($candidate, $target)
             Write-Output "Installed SIAAS CLI $version. No SIAAS product was installed."
         }
-        Write-Output 'Add the selected directory to your user PATH manually, or invoke its siaas.exe directly.'
-        $script:ResultCode = 0
+        if ($PathMode -eq '-AddToPath' -or (-not $PathMode -and $DefaultDestination -and -not $FromDir)) {
+            try { Add-CliUserPath $InstallDir }
+            catch { Fail 6 'CLI executable installed; user PATH update failed. Invoke siaas.exe directly or configure PATH manually.' }
+        } else {
+            Write-Output 'Add the selected directory to your user PATH manually, or invoke its siaas.exe directly.'
+        }
+        $siaasInstallState.Code = 0
     }
 } catch {
     # Only our fixed messages are printable; native exceptions may include secrets/paths.
-    $message = if ($_.Exception -is [InvalidOperationException] -and $script:ResultCode -ne 1) { $_.Exception.Message } else { 'Installation failed. Existing CLI/backup preserved. Close CLI processes, check permissions/free space and use a private user directory; retry after inspection.' }
-    if ($script:ResultCode -eq 1) { $script:ResultCode = 6 }
+    $message = if ($_.Exception -is [InvalidOperationException] -and $siaasInstallState.Code -ne 1) { $_.Exception.Message } else { 'Installation failed. Existing CLI/backup preserved. Close CLI processes, check permissions/free space and use a private user directory; retry after inspection.' }
+    if ($siaasInstallState.Code -eq 1) { $siaasInstallState.Code = 6 }
     [Console]::Error.WriteLine('siaas installer: ' + $message)
 } finally {
     [Net.ServicePointManager]::SecurityProtocol = $oldTLS
-    if ($stage -and [IO.Directory]::Exists($stage)) { try { [IO.Directory]::Delete($stage, $true) } catch { [Console]::Error.WriteLine('Inspect the remaining .siaas-cli-stage directory after the installer exits.'); if ($script:ResultCode -eq 0) { $script:ResultCode = 6 } } }
+    if ($stage -and [IO.Directory]::Exists($stage)) { try { [IO.Directory]::Delete($stage, $true) } catch { [Console]::Error.WriteLine('Inspect the remaining .siaas-cli-stage directory after the installer exits.'); if ($siaasInstallState.Code -eq 0) { $siaasInstallState.Code = 6 } } }
     if ($lockStream) {
         $lockStream.Dispose()
-        try { [IO.File]::Delete($lockPath) } catch { [Console]::Error.WriteLine('Installer lock remains; inspect it before retrying.'); if ($script:ResultCode -eq 0) { $script:ResultCode = 6 } }
+        try { [IO.File]::Delete($lockPath) } catch { [Console]::Error.WriteLine('Installer lock remains; inspect it before retrying.'); if ($siaasInstallState.Code -eq 0) { $siaasInstallState.Code = 6 } }
     }
 }
-exit $script:ResultCode
+$global:LASTEXITCODE = $siaasInstallState.Code
+} @args
+if ($siaasCliFileInvocation) { exit $global:LASTEXITCODE }
+Remove-Variable siaasCliFileInvocation -ErrorAction SilentlyContinue

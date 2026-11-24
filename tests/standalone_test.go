@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	binary = filepath.Join(dir, "siaas-cli_0.2.0_"+runtime.GOOS+"_"+runtime.GOARCH)
+	binary = filepath.Join(dir, "siaas-cli_0.2.1_"+runtime.GOOS+"_"+runtime.GOARCH)
 	if runtime.GOOS == "windows" {
 		binary += ".exe"
 	}
@@ -72,7 +72,7 @@ func TestNativePlatformAndReleaseContract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := fmt.Sprintf("siaas-cli-release-v1 0.2.0\n%s %s %s %x %d\n", runtime.GOOS, runtime.GOARCH, name, sha256.Sum256(data), len(data))
+	expected := fmt.Sprintf("siaas-cli-release-v1 0.2.1\n%s %s %s %x %d\n", runtime.GOOS, runtime.GOARCH, name, sha256.Sum256(data), len(data))
 	if string(manifest) != expected {
 		t.Fatalf("release manifest mismatch: %s", manifest)
 	}
@@ -111,7 +111,7 @@ func TestStandaloneWithoutRuntime(t *testing.T) {
 		OK      bool
 		Version string
 	}
-	if err = json.Unmarshal(out, &r); err != nil || !r.OK || r.Version != "0.2.0" {
+	if err = json.Unmarshal(out, &r); err != nil || !r.OK || r.Version != "0.2.1" {
 		t.Fatalf("invalid standalone output: %s", out)
 	}
 	if strings.Contains(string(out), "secret-sentinel") {

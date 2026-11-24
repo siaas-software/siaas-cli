@@ -9,21 +9,20 @@ No administrator privileges or Node.js, npm, Electron, Docker, Ollama or Go inst
 ### Windows (PowerShell)
 
 ```powershell
-Invoke-WebRequest -Uri "https://github.com/siaas-software/siaas-cli/releases/download/v0.2.0/install.ps1" -OutFile install-siaas-cli.ps1
+Invoke-WebRequest -Uri "https://github.com/siaas-software/siaas-cli/releases/download/v0.2.1/install.ps1" -OutFile install-siaas-cli.ps1
 ```
 
 Review the script and compare its SHA-256 against the release's SHA256SUMS. Then run under your existing execution policy:
 
 ```powershell
 .\install-siaas-cli.ps1
-$env:Path = "$env:LOCALAPPDATA\SIAAS CLI\bin;$env:Path"
 siaas --version
 ```
 
 ### Linux and macOS (Bash)
 
 ```bash
-curl -fsSL https://github.com/siaas-software/siaas-cli/releases/download/v0.2.0/install.sh -o install-siaas-cli.sh
+curl -fsSL https://github.com/siaas-software/siaas-cli/releases/download/v0.2.1/install.sh -o install-siaas-cli.sh
 ```
 
 Review the script and compare its SHA-256 against the release's SHA256SUMS. Then run:
@@ -34,7 +33,7 @@ export PATH="$HOME/.local/bin:$PATH"
 siaas --version
 ```
 
-See [official releases](https://github.com/siaas-software/siaas-cli/releases). The bootstrap selects the latest stable CLI release and verifies executable size and SHA-256. The versioned URL pins the script, not the installed CLI version. PATH changes above apply only to the current terminal; add the corresponding directory to your user PATH for future sessions. For v0.2.0, avoid evaluating the script with `irm | iex` in your current PowerShell: its final `exit` closes that session. Run the downloaded script as shown or in a separate PowerShell process. Artifacts are unsigned; respect OS security policies.
+See [official releases](https://github.com/siaas-software/siaas-cli/releases). The bootstrap selects the latest stable CLI release and verifies executable size and SHA-256. The versioned URL pins the script, not the installed CLI version. On Unix the PATH change above applies only to the current terminal; add it to your shell configuration for future sessions. Windows v0.2.1 keeps the interactive PowerShell session open when evaluated with Invoke-Expression and adds the default verified CLI directory to user and current-process PATH. Artifacts are unsigned; respect OS security policies.
 
 | OS | Architectures | Default executable |
 | --- | --- | --- |
@@ -50,7 +49,7 @@ siaas --version
 siaas --version --json
 ```
 
-Installing the CLI does not install SIAAS Personal. The published v0.2.0 release supports standalone CLI commands, read-only Personal release verification and first-party Personal lifecycle on Linux x64. Run the installed CLI's help to discover its capabilities.
+Installing the CLI does not install SIAAS Personal. Version 0.2.1 retains the published v0.2.0 CLI capabilities and fixes the Windows bootstrap. Run the installed CLI's help to discover its capabilities.
 
 ## 3. Commands
 
@@ -113,7 +112,7 @@ or `error: {code, message}`. Help also includes the embedded Go runtime copyrigh
 notice; `--version` remains short.
 
 ```json
-{"schemaVersion":1,"ok":true,"command":"version","version":"0.2.0","message":"siaas 0.2.0"}
+{"schemaVersion":1,"ok":true,"command":"version","version":"0.2.1","message":"siaas 0.2.1"}
 ```
 
 Mutating Personal commands verify the official first-party capability and
@@ -172,7 +171,7 @@ go test -count=1 -timeout=8m ./...
 go vet ./...
 bash -n install.sh
 go run ./tools/build
-./dist/siaas-cli_0.2.0_linux_amd64 --version --json
+./dist/siaas-cli_0.2.1_linux_amd64 --version --json
 ```
 
 Select the filename matching the build host. On Windows PowerShell:
@@ -185,7 +184,7 @@ $env:GOTELEMETRY='off'
 go test -count=1 -timeout=8m ./...
 go vet ./...
 go run ./tools/build
-.\dist\siaas-cli_0.2.0_windows_amd64.exe --version --json
+.\dist\siaas-cli_0.2.1_windows_amd64.exe --version --json
 ```
 
 Tests use temporary directories, a built CLI executable and local release fixtures.
@@ -260,14 +259,12 @@ instead of requesting or exposing tokens.
 | --- | --- | --- |
 | Help | `--help` | `-Help` |
 | Installation directory | `--install-dir <absolute-path>` | `-InstallDir <absolute-local-drive-path>` |
+| PATH configuration | Manual | `-AddToPath` / `-NoPath` |
 | Explicit local fixture/release | `--from-dir <directory>` | `-FromDir <directory>` |
 | Default destination | `~/.local/bin/siaas` | `%LOCALAPPDATA%\SIAAS CLI\bin\siaas.exe` |
 | Environment override | `SIAAS_CLI_INSTALL_DIR` | `SIAAS_CLI_INSTALL_DIR` |
 
-An explicit option overrides the environment. Installers do not edit PATH or shell
-profiles, elevate privileges, download products, execute downloaded binaries,
-remove models or access application profiles. Add the chosen directory to your
-user PATH yourself, or invoke the installed executable by its path. Unix requires
+An explicit option overrides the environment. Windows default remote installs add the verified private CLI directory to user and process PATH without duplicating entries; `-NoPath` opts out. Custom directories and offline installs do not modify PATH unless explicitly opted in with `-AddToPath`. Unix does not edit PATH or shell profiles. Neither installer elevates privileges, downloads products, executes downloaded binaries, removes models or accesses application profiles. Unix requires
 Bash, standard file utilities, `sha256sum` or `shasum`, and curl only for remote
 downloads. Windows needs PowerShell 5.1+ and a local filesystem supporting the
 required move/replace operations and NTFS alternate data streams for remote
@@ -330,7 +327,7 @@ For a complete **local unsigned candidate** on a Linux development host with GNU
 utilities and the pinned Go compiler, use a fresh output directory:
 
 ```sh
-bash tools/prepare-release.sh dist/v0.2.0
+bash tools/prepare-release.sh dist/v0.2.1
 ```
 
 This assembles all six target binaries, `SHA256SUMS`, `cli-release-v1.txt`, both
