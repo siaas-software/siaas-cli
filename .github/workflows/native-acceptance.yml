@@ -13,7 +13,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight:
+    if: github.repository == 'siaas-software/siaas-cli' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: 'off'
+      GOSUMDB: 'off'
+      GOTELEMETRY: 'off'
+      GOENV: 'off'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version-file: .go-version
+          cache: false
+          check-latest: false
+      - name: Linux preflight
+        run: |
+          set -euo pipefail
+          go version
+          unformatted=$(gofmt -l cmd internal tools tests)
+          if test -n "$unformatted"; then
+            gofmt -d cmd internal tools tests
+            exit 1
+          fi
+          go vet ./...
+          bash -n install.sh tests/rc4-rc5-profile.sh tests/public-rc4-rc5-lifecycle.sh
+          go test -count=1 -timeout=8m ./...
+          go test -race -count=1 -timeout=8m ./...
+          go build ./cmd/siaas
+      - name: Provision official pinned Node runtime
+        if: github.head_ref == 'release/0.2.0' || github.ref == 'refs/heads/release/0.2.0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=$(mktemp -d)
+          cd "$root"
+          base=https://nodejs.org/dist/v24.22.0
+          name=node-v24.22.0-linux-x64.tar.gz
+          curl --fail --silent --show-error --proto '=https' "$base/SHASUMS256.txt" -o SHASUMS256.txt
+          curl --fail --silent --show-error --proto '=https' "$base/$name" -o "$name"
+          grep -E "^[a-f0-9]{64}  $name$" SHASUMS256.txt > selected.sha256
+          test "$(wc -l < selected.sha256)" -eq 1
+          sha256sum --check selected.sha256
+          tar -xzf "$name"
+          echo "$root/node-v24.22.0-linux-x64/bin" >> "$GITHUB_PATH"
+      - name: RC4 to RC5 copied-profile migration fixture
+        if: github.head_ref == 'release/0.2.0' || github.ref == 'refs/heads/release/0.2.0'
+        run: bash tests/rc4-rc5-profile.sh
+
+      - name: Public compiled CLI lifecycle
+        if: github.head_ref == 'release/0.2.0' || github.ref == 'refs/heads/release/0.2.0'
+        run: bash tests/public-rc4-rc5-lifecycle.sh
+
   native:
+    needs: preflight
     # Never allocate runners for a private copy or another repository.
     if: github.repository == 'siaas-software/siaas-cli' && github.event.repository.private == false
     name: ${{ matrix.runner }} (${{ matrix.goos }}/${{ matrix.goarch }})

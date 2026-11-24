@@ -56,6 +56,7 @@ func profileSnapshot(root string) (map[string]string, error) {
 	})
 	return result, err
 }
+
 // A reviewed legacy transition is bound to immutable release identities, not
 // merely the SQLite user_version. Future Personal-owned declarations require
 // their own versioned protocol and acceptance; unknown changes remain refused.

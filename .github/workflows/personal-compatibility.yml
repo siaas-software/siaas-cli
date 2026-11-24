@@ -1,13 +1,7 @@
 name: Personal release compatibility review
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'tests/rc4-rc5-profile.*'
-      - 'tests/public-rc4-rc5-lifecycle.sh'
-      - 'internal/personal/**'
-      - '.github/workflows/personal-compatibility.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
