@@ -8,6 +8,18 @@ No administrator privileges or Node.js, npm, Electron, Docker, Ollama or Go inst
 
 ### Windows (PowerShell)
 
+PowerShell 5.1 or later. For installation or upgrade, after reviewing and trusting the official release script, run:
+
+```powershell
+irm https://github.com/siaas-software/siaas-cli/releases/download/v0.2.1/install.ps1 | iex
+```
+
+The default installation configures your user PATH and the current PowerShell session. The session remains open. Existing CLI installations are upgraded in place, retaining the previous executable as `siaas.exe.backup.*`. No Personal installation or data is changed.
+
+Verify with `siaas --version` (currently `siaas 0.2.1`).
+
+Alternatively, download and inspect the script before executing it:
+
 ```powershell
 Invoke-WebRequest -Uri "https://github.com/siaas-software/siaas-cli/releases/download/v0.2.1/install.ps1" -OutFile install-siaas-cli.ps1
 ```
@@ -49,7 +61,7 @@ siaas --version
 siaas --version --json
 ```
 
-Installing the CLI does not install SIAAS Personal. Version 0.2.1 retains the published v0.2.0 CLI capabilities and fixes the Windows bootstrap. Run the installed CLI's help to discover its capabilities.
+Installing the CLI does not install SIAAS Personal. The current stable release is [v0.2.1](https://github.com/siaas-software/siaas-cli/releases/tag/v0.2.1). It retains the v0.2.0 CLI capabilities and fixes the Windows bootstrap. Run the installed CLI's help to discover its capabilities.
 
 ## 3. Commands
 
@@ -57,11 +69,11 @@ Installing the CLI does not install SIAAS Personal. Version 0.2.1 retains the pu
 | --- | --- | --- |
 | `siaas`, `siaas help`, `siaas --help` | Show help | v0.1.0+ |
 | `siaas --version` | Show version | v0.1.0+ |
-| `siaas install personal --rc --check` | Verify release without installation | v0.2.0 |
-| `siaas update personal --rc --check` | Verify update candidate | v0.2.0 |
-| `siaas install personal --rc --yes` | Install Personal | v0.2.0 (Linux x64) |
-| `siaas update personal --rc --yes` | Update Personal | v0.2.0 (Linux x64; RC4 → RC5 verified) |
-| `siaas uninstall personal --rc --yes` | Uninstall Personal | v0.2.0 (Linux x64) |
+| `siaas install personal --rc --check` | Verify release without installation | v0.2.0+ |
+| `siaas update personal --rc --check` | Verify update candidate | v0.2.0+ |
+| `siaas install personal --rc --yes` | Install Personal | v0.2.0+ (Linux x64) |
+| `siaas update personal --rc --yes` | Update Personal | v0.2.0+ (Linux x64; RC4 → RC5 verified) |
+| `siaas uninstall personal --rc --yes` | Uninstall Personal | v0.2.0+ (Linux x64) |
 
 Use `--json` for machine-readable output.
 
@@ -152,7 +164,14 @@ contract and evidence. Public RC4 → RC5 update acceptance passed; other change
 
 ## Personal lifecycle validation status
 
-Linux x64 installation, repeat installation, RC4 → RC5 update, refusal of downgrade and repeated uninstall passed [public lifecycle acceptance](https://github.com/siaas-software/siaas-cli/actions/runs/45373227144). All six native CLI/bootstrap targets passed. The [published v0.2.0 release](https://github.com/siaas-software/siaas-cli/releases/tag/v0.2.0) passed [12 anonymous downloads and Linux bootstrap](https://github.com/siaas-software/siaas-cli/actions/runs/45382863100). A real Windows 11 / PowerShell 7.6.9 installation and version check also passed, with manual PATH configuration. Native GUI and other platform Personal mutations remain unsupported/unverified. See [native lifecycle evidence](docs/m2-native-success.md), [historical blocked attempt](docs/m2-working-lifecycle.md) and [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
+Linux x64 installation, repeat installation, RC4 → RC5 update, refusal of downgrade and repeated uninstall passed [v0.2.1 acceptance](https://github.com/siaas-software/siaas-cli/actions/runs/45403602878). Personal lifecycle mutations remain Linux x64 only; native GUI acceptance and lifecycle mutations on other platforms are not established. See [native lifecycle evidence](docs/m2-native-success.md) and [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
+
+## Current release verification — v0.2.1
+
+- [Native acceptance](https://github.com/siaas-software/siaas-cli/actions/runs/45403602878): all seven jobs passed, including six native targets. Windows x64 and ARM64 passed PowerShell 5.1 and 7.6.10 session/PATH regressions and genuine standard-user acceptance.
+- [Asset preparation](https://github.com/siaas-software/siaas-cli/actions/runs/45406881274) and [publication](https://github.com/siaas-software/siaas-cli/actions/runs/45407418952): 12 assets, SHA-256 and anonymous downloads verified; public Linux bootstrap passed. Stable Latest, published 24 November 2026, source commit `c1c5e3ec0d6bbfd86b06f388e1204d231866fdc5`.
+- Maintainer acceptance, 24 November 2026: real Windows 11 / PowerShell 7.6.9 public upgrade from v0.2.0 to v0.2.1 using `irm | iex` completed, installer reported previous executable retained and user/process PATH configured, session remained open, and `siaas --version` returned `siaas 0.2.1`. The PATH had already been manually configured for v0.2.0; fresh PATH configuration and repeat-install behavior were separately tested in CI. No fresh real-PC install or post-restart persistence check is claimed here.
+- Artifacts remain unsigned and GitHub release immutability is disabled; release tags are protected. OS security policies remain applicable.
 
 ## Develop and validate locally
 
@@ -301,7 +320,7 @@ then remove only abandoned installer state and retry. Never recursively delete
 the install directory or an application data directory. Disk durability through
 power loss and recovery from hostile filesystem changes are not guaranteed.
 
-## Platform evidence and boundaries
+## Historical platform evidence and boundaries (v0.1.0)
 
 | Target | Build | Native CLI/bootstrap acceptance (v0.1.0) |
 | --- | --- | --- |
@@ -313,12 +332,12 @@ power loss and recovery from hostile filesystem changes are not guaranteed.
 The [native acceptance report](docs/native-acceptance.md) links all six successful
 jobs, exact tested commit, 378 passing test/subtest events and Windows PowerShell
 versions. No real remote Release installation was tested in that historical acceptance. The historical follow-up [public-security review](docs/public-release-security-review.md)
-records the latest six-platform PASS, 450 passing events including both genuine
+records a historical six-platform PASS, 450 passing events including both genuine
 standard-user Windows suites, and OS-policy probes.
 Hosted administrator tests alone do not prove standard-user acceptance.
 Downloaded-file SmartScreen/Gatekeeper behavior, signing/notarization decisions
 and support for older OS versions remain outside this acceptance. No signing
-credentials, artifact uploads or paid services were introduced.
+credentials, artifact uploads or paid services were introduced in that historical acceptance.
 
 See the [architecture decision](docs/adr/0001-standalone-runtime.md),
 [validation report](docs/validation-m1.md), and [future product contract](docs/product-manifest-contract.md).
@@ -335,7 +354,7 @@ bootstrap scripts, `RELEASE_NOTES.md` and `GO-LICENSE.txt`. It performs no uploa
 tagging or publication. All six targets now have native offline acceptance. The
 [security review](docs/security-review.md) records fixes, trust assumptions and
 remaining historical release gates. The current [public-security review](docs/public-release-security-review.md)
-records the historical unsigned distribution decision. The v0.2.0 publication evidence above supersedes its pre-publication status. See the [post-publication smoke and incident procedure](docs/post-publication-smoke-test.md).
+records the historical unsigned distribution decision. The v0.2.1 publication evidence above supersedes its pre-publication status. See the [post-publication smoke and incident procedure](docs/post-publication-smoke-test.md).
 
 Historical review decision: **READY WITH EXPLICIT RISK ACCEPTANCE** for unsigned v0.1.0
 distribution. Internet-marked unsigned
