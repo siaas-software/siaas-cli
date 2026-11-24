@@ -30,7 +30,10 @@ func TestProfileSnapshotsRejectLinksAndPreserveBytes(t *testing.T) {
 }
 
 func TestPersistenceCodeChangeNeedsMigrationReview(t *testing.T) {
-	root := t.TempDir()
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	dir := filepath.Join(root, "versions", "fixture", "src", "lib", "local")
 	os.MkdirAll(dir, 0700)
 	os.WriteFile(filepath.Join(dir, "database.ts"), []byte("old schema"), 0600)
@@ -70,7 +73,10 @@ func TestReviewedMigrationIdentityRejectsOtherReleases(t *testing.T) {
 }
 
 func TestCompatibilityGuardRetainsDefaultRefusal(t *testing.T) {
-	root := t.TempDir()
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	dir := filepath.Join(root, "versions", "fixture", "src", "lib", "local")
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)
