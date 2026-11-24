@@ -50,19 +50,19 @@ siaas --version
 siaas --version --json
 ```
 
-Installing the CLI does not install SIAAS Personal. The published v0.1.0 binary is the M1 foundation. M2 lifecycle functionality described below is implemented on main; do not assume it is available in the published M1 binary. Run the installed CLI's help to discover its capabilities.
+Installing the CLI does not install SIAAS Personal. The published v0.1.0 binary supports the standalone CLI commands. Personal lifecycle functionality below is targeted for v0.2.0 and is not yet published. Run the installed CLI's help to discover its capabilities.
 
 ## 3. Commands
 
 | Command | Purpose | Availability |
 | --- | --- | --- |
-| `siaas`, `siaas help`, `siaas --help` | Show help | M1 |
-| `siaas --version` | Show version | M1 |
-| `siaas install personal --rc --check` | Verify release without installation | M2 (main) |
-| `siaas update personal --rc --check` | Verify update candidate | M2 (main) |
-| `siaas install personal --rc --yes` | Install Personal | M2 (Linux x64) |
-| `siaas update personal --rc --yes` | Update Personal | M2 (Linux x64; RC-to-RC acceptance pending) |
-| `siaas uninstall personal --rc --yes` | Uninstall Personal | M2 (Linux x64) |
+| `siaas`, `siaas help`, `siaas --help` | Show help | v0.1.0+ |
+| `siaas --version` | Show version | v0.1.0+ |
+| `siaas install personal --rc --check` | Verify release without installation | v0.2.0 (planned) |
+| `siaas update personal --rc --check` | Verify update candidate | v0.2.0 (planned) |
+| `siaas install personal --rc --yes` | Install Personal | v0.2.0 (Linux x64) |
+| `siaas update personal --rc --yes` | Update Personal | v0.2.0 (Linux x64; RC-to-RC acceptance pending) |
+| `siaas uninstall personal --rc --yes` | Uninstall Personal | v0.2.0 (Linux x64) |
 
 Use `--json` for machine-readable output.
 
@@ -96,11 +96,12 @@ or endpoint override is accepted.
 
 | Exit | Meaning |
 | --- | --- |
-| 0 | Help/version or read-only release verification completed; not installation success |
+| 0 | Help/version, read-only verification or verified completed lifecycle operation |
 | 1 | Output/internal failure |
 | 2 | Invalid usage / unknown command or options |
 | 3 | Unsupported lifecycle capability or reserved command |
 | 4 | Release, network or integrity verification failed |
+| 5 | Lifecycle operation or postcondition verification failed |
 
 These codes describe completed invocations. OS signals or a closed output pipe
 can terminate a process before it writes a result.
@@ -151,7 +152,7 @@ the private runtime's persisted checksum after installation. See
 contract and evidence. Public compatible RC-to-RC update acceptance awaits another
 compatible release; RC3 is not an eligible baseline.
 
-## M2 implementation status
+## Personal lifecycle validation status
 
 Linux x64 native installation, reinstall and uninstall of public Personal RC4 passed focused acceptance. Public RC-to-RC update, native GUI and other platform lifecycle acceptance remain pending in the recorded evidence. See [native lifecycle evidence](docs/m2-native-success.md), [historical blocked attempt](docs/m2-working-lifecycle.md) and [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
 
@@ -306,7 +307,7 @@ power loss and recovery from hostile filesystem changes are not guaranteed.
 
 ## Platform evidence and boundaries
 
-| Target | Build | Native CLI/bootstrap acceptance in M1 |
+| Target | Build | Native CLI/bootstrap acceptance (v0.1.0) |
 | --- | --- | --- |
 | Linux x64 | Native PASS | PASS on Debian 13.6 and `ubuntu-24.04`; offline fixtures |
 | Linux arm64 | Native PASS | PASS on `ubuntu-24.04-arm`; offline fixtures |
@@ -340,7 +341,7 @@ tagging or publication. All six targets now have native offline acceptance. The
 remaining historical release gates. The current [public-security review](docs/public-release-security-review.md)
 is authoritative for the latest candidate and distribution decision. This report predates publication. See the [post-publication smoke and incident procedure](docs/post-publication-smoke-test.md).
 
-Historical review decision: **READY WITH EXPLICIT RISK ACCEPTANCE** for unsigned M1
+Historical review decision: **READY WITH EXPLICIT RISK ACCEPTANCE** for unsigned v0.1.0
 distribution. Internet-marked unsigned
 PowerShell scripts can be blocked, and macOS Gatekeeper assessment rejected the
 candidates. Public downloads and interactive OS acceptance were unverified at the time of that review.
