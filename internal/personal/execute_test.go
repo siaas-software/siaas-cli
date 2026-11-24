@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -187,5 +188,35 @@ func TestVerifiedReceiptRejectsRuntimeLinks(t *testing.T) {
 	r := &Report{Version: "1.1.0-rc.4"}
 	if err := finishOperation(root, "install", r); err == nil || r.Operation != nil {
 		t.Fatal("linked runtime ancestry accepted")
+	}
+}
+
+func TestInstallCannotBypassUpdateCompatibility(t *testing.T) {
+	if runtime.GOOS != "linux" || runtime.GOARCH != "amd64" {
+		t.Skip("Personal mutations supported only on Linux x64")
+	}
+	root := t.TempDir()
+	owner, err := json.Marshal(ownership{1, "siaas.personal.first-party-m2", root, "candidate"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "cli-owner.json"), owner, 0600); err != nil {
+		t.Fatal(err)
+	}
+	current := []byte(`{"version":"1.1.0-rc.4","folder":"rc4","cliManaged":1}`)
+	if err := os.WriteFile(filepath.Join(root, "current.json"), current, 0600); err != nil {
+		t.Fatal(err)
+	}
+	r := &Report{Version: "1.1.0-rc.5", Channel: "candidate", Compatible: true, source: []byte("not downloaded")}
+	err = NewClient().Execute(context.Background(), "install", r, root, io.Discard)
+	if err == nil || err.Error() != "newer release requires explicit update" {
+		t.Fatalf("expected update refusal before provisioning, got %v", err)
+	}
+	after, err := os.ReadFile(filepath.Join(root, "current.json"))
+	if err != nil || string(after) != string(current) || r.Operation != nil {
+		t.Fatal("refused install changed active state or emitted receipt")
+	}
+	if _, err := os.Stat(filepath.Join(root, "runtimes")); !os.IsNotExist(err) {
+		t.Fatal("refused install attempted runtime provisioning")
 	}
 }
