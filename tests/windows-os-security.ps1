@@ -13,7 +13,7 @@ try {
     $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repository 'install.ps1'),[ref]$tokens,[ref]$parseErrors)
     if ($parseErrors.Count) { throw 'Installer parse error.' }
     foreach ($name in @('Fail','Set-InternetZone')) {
-        $function = $ast.Find({ param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $name },$false)
+        $function = $ast.Find({ param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $name },$true)
         . ([ScriptBlock]::Create($function.Extent.Text))
     }
     Set-InternetZone $binary.FullName

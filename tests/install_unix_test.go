@@ -26,9 +26,9 @@ func fixture(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := "siaas-cli_0.2.0_" + runtime.GOOS + "_" + runtime.GOARCH
+	name := "siaas-cli_0.2.1_" + runtime.GOOS + "_" + runtime.GOARCH
 	write(t, filepath.Join(dir, name), data, 0755)
-	manifest := fmt.Sprintf("siaas-cli-release-v1 0.2.0\n%s %s %s %x %d\n", runtime.GOOS, runtime.GOARCH, name, sha256.Sum256(data), len(data))
+	manifest := fmt.Sprintf("siaas-cli-release-v1 0.2.1\n%s %s %s %x %d\n", runtime.GOOS, runtime.GOARCH, name, sha256.Sum256(data), len(data))
 	write(t, filepath.Join(dir, "cli-release-v1.txt"), []byte(manifest), 0600)
 	return dir, name
 }
@@ -89,7 +89,7 @@ func TestUnixInstallRepeatAndReplacement(t *testing.T) {
 		t.Fatal("application data changed")
 	}
 	cmd := exec.Command(target, "--version")
-	if out, err := cmd.Output(); err != nil || string(out) != "siaas 0.2.0\n" {
+	if out, err := cmd.Output(); err != nil || string(out) != "siaas 0.2.1\n" {
 		t.Fatalf("installed binary: %s %v", out, err)
 	}
 	stages, _ := filepath.Glob(filepath.Join(dir, ".siaas-cli-*"))
@@ -147,7 +147,7 @@ func TestUnixInstallerFailuresPreserveExisting(t *testing.T) {
 			case "wrong schema":
 				write(t, meta, []byte(strings.Replace(text, "release-v1", "release-v2", 1)), 0600)
 			case "wrong version":
-				write(t, meta, []byte(strings.Replace(text, "0.2.0", "../escape", 1)), 0600)
+				write(t, meta, []byte(strings.Replace(text, "0.2.1", "../escape", 1)), 0600)
 			case "missing platform":
 				other := "linux"
 				if runtime.GOOS == other {

@@ -6,7 +6,7 @@ $path = Join-Path (Split-Path $PSScriptRoot -Parent) 'install.ps1'
 $ast = [Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
 if ($errors.Count) { throw 'Installer syntax errors.' }
 # Load only the reviewed pure predicate, never execute the installer entry point.
-$function = $ast.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Test-TrustedReleaseUri' }, $false)
+$function = $ast.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Test-TrustedReleaseUri' }, $true)
 if (-not $function) { throw 'Missing URI policy function.' }
 . ([ScriptBlock]::Create($function.Extent.Text))
 $accepted = @(

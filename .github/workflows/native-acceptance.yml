@@ -47,7 +47,7 @@ jobs:
           go test -race -count=1 -timeout=8m ./...
           go build ./cmd/siaas
       - name: Provision official pinned Node runtime
-        if: github.head_ref == 'release/0.2.0' || github.ref == 'refs/heads/release/0.2.0'
+        if: startsWith(github.head_ref, 'release/0.2.') || startsWith(github.ref, 'refs/heads/release/0.2.')
         shell: bash
         run: |
           set -euo pipefail
@@ -63,11 +63,11 @@ jobs:
           tar -xzf "$name"
           echo "$root/node-v24.22.0-linux-x64/bin" >> "$GITHUB_PATH"
       - name: RC4 to RC5 copied-profile migration fixture
-        if: github.head_ref == 'release/0.2.0' || github.ref == 'refs/heads/release/0.2.0'
+        if: startsWith(github.head_ref, 'release/0.2.') || startsWith(github.ref, 'refs/heads/release/0.2.')
         run: bash tests/rc4-rc5-profile.sh
 
       - name: Public compiled CLI lifecycle
-        if: github.head_ref == 'release/0.2.0' || github.ref == 'refs/heads/release/0.2.0'
+        if: startsWith(github.head_ref, 'release/0.2.') || startsWith(github.ref, 'refs/heads/release/0.2.')
         run: bash tests/public-rc4-rc5-lifecycle.sh
 
   native:
@@ -161,6 +161,20 @@ jobs:
           & ./tests/powershell-policy.ps1
       - name: Native CLI and offline bootstrap acceptance
         run: go test -v -count=1 -timeout=8m ./...
+      - name: Windows interactive shell and user PATH regression (both PowerShell editions)
+        if: runner.os == 'Windows' && (github.head_ref == 'release/0.2.1' || github.ref == 'refs/heads/release/0.2.1')
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($shell in @('powershell.exe','pwsh.exe')) {
+            $saved = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            $output = & $shell -NoProfile -NonInteractive -File tests/windows-path-and-session.ps1 2>&1
+            $code = $LASTEXITCODE
+            $ErrorActionPreference = $saved
+            $output | Write-Output
+            if ($code -ne 0 -or ($output | Out-String) -notmatch 'SESSION_PATH_ACCEPTANCE=PASS') { throw "Session/PATH regression failed for $shell." }
+          }
       - name: Windows unsigned distribution policy probes
         if: runner.os == 'Windows'
         shell: powershell

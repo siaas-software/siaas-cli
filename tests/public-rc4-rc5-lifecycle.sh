@@ -29,7 +29,7 @@ receipt() {
   python3 - "$root/$1.json" "$2" "$3" <<'PY'
 import json, sys
 with open(sys.argv[1]) as f: r=json.load(f)
-assert r["ok"] and r["version"]=="0.2.0"
+assert r["ok"] and r["version"]=="0.2.1"
 p=r["personal"]
 if sys.argv[2]=="check":
     assert p["sourceVerified"] and p["compatible"] and p["immutable"] and "operation" not in p
