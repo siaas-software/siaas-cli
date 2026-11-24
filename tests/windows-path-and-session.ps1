@@ -14,6 +14,8 @@ try {
     $raw = '%SystemRoot%\System32;C:\Siaas fixture existing'
     $key.SetValue('Path',$raw,[Microsoft.Win32.RegistryValueKind]::ExpandString)
     [void][IO.Directory]::CreateDirectory($stage)
+    # TEMP on hosted Windows can use an 8.3 alias (RUNNER~1). Match the installer's full-path normalization before testing exact strings.
+    $stage = [IO.Path]::GetFullPath($stage)
     $env:LOCALAPPDATA = $stage
     Remove-Item Env:SIAAS_CLI_INSTALL_DIR -ErrorAction SilentlyContinue
     $installer = Get-Content -LiteralPath (Join-Path $repository 'install.ps1') -Raw
@@ -21,8 +23,13 @@ try {
     # Use real public release downloads, but the reviewed candidate installer.
     Invoke-Expression $installer
     if ($LASTEXITCODE -ne 0) { throw 'IEX remote install failed.' }
-    if ((Get-Command siaas -ErrorAction Stop).Source -ne (Join-Path $dest 'siaas.exe')) { throw 'CLI not on session PATH.' }
+    $expectedExe = [IO.Path]::GetFullPath((Join-Path $dest 'siaas.exe'))
+    $resolved = Get-Command siaas -ErrorAction Stop
+    if ($resolved.CommandType -ne 'Application' -or [IO.Path]::GetFullPath($resolved.Source) -ne $expectedExe) { throw "CLI not on session PATH. Expected=$expectedExe; resolved=$($resolved.Source); type=$($resolved.CommandType)" }
+    if (-not [IO.File]::Exists($expectedExe)) { throw 'Expected installed binary missing.' }
+    Write-Output "Resolved CLI: $($resolved.Source)"
     if ((siaas --version) -notmatch '^siaas 0\.2\.[01]$') { throw 'Unexpected remote CLI version.' }
+    $dest = [IO.Path]::GetFullPath($dest)
     $expected = $raw + ';' + $dest
     if ($key.GetValue('Path','',[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) -cne $expected -or $key.GetValueKind('Path') -ne [Microsoft.Win32.RegistryValueKind]::ExpandString) { throw 'User PATH or registry type not preserved.' }
     Invoke-Expression $installer
@@ -40,8 +47,11 @@ try {
     $expected += ';' + $env:SIAAS_CLI_INSTALL_DIR
     if ($key.GetValue('Path','',[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) -cne $expected) { throw 'Explicit PATH opt-in not persisted.' }
     Remove-Item Env:SIAAS_CLI_INSTALL_DIR -ErrorAction SilentlyContinue
+    $env:LOCALAPPDATA = Join-Path $stage 'opt-out'
+    [void][IO.Directory]::CreateDirectory($env:LOCALAPPDATA)
+    $beforeOptOut = $env:Path
     & (Join-Path $repository 'install.ps1') -NoPath
-    if ($LASTEXITCODE -ne 0 -or $key.GetValue('Path','',[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) -cne $expected) { throw 'PATH opt-out failed.' }
+    if ($LASTEXITCODE -ne 0 -or $key.GetValue('Path','',[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) -cne $expected -or $env:Path -cne $beforeOptOut -or -not [IO.File]::Exists((Join-Path $env:LOCALAPPDATA 'SIAAS CLI\bin\siaas.exe'))) { throw 'PATH opt-out failed.' }
     Write-Output ('SESSION_PATH_ACCEPTANCE=PASS PowerShell ' + $PSVersionTable.PSVersion)
 } finally {
     if ($hadPath) { $key.SetValue('Path',$originalRaw,$originalKind) } else { $key.DeleteValue('Path',$false) }
