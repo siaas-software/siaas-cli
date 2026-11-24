@@ -113,7 +113,7 @@ or `error: {code, message}`. Help also includes the embedded Go runtime copyrigh
 notice; `--version` remains short.
 
 ```json
-{"schemaVersion":1,"ok":true,"command":"version","version":"0.1.0","message":"siaas 0.1.0"}
+{"schemaVersion":1,"ok":true,"command":"version","version":"0.2.0","message":"siaas 0.2.0"}
 ```
 
 Mutating Personal commands verify the official first-party capability and
@@ -173,7 +173,7 @@ go test -count=1 -timeout=8m ./...
 go vet ./...
 bash -n install.sh
 go run ./tools/build
-./dist/siaas-cli_0.1.0_linux_amd64 --version --json
+./dist/siaas-cli_0.2.0_linux_amd64 --version --json
 ```
 
 Select the filename matching the build host. On Windows PowerShell:
@@ -186,7 +186,7 @@ $env:GOTELEMETRY='off'
 go test -count=1 -timeout=8m ./...
 go vet ./...
 go run ./tools/build
-.\dist\siaas-cli_0.1.0_windows_amd64.exe --version --json
+.\dist\siaas-cli_0.2.0_windows_amd64.exe --version --json
 ```
 
 Tests use temporary directories, a built CLI executable and local release fixtures.
@@ -331,7 +331,7 @@ For a complete **local unsigned candidate** on a Linux development host with GNU
 utilities and the pinned Go compiler, use a fresh output directory:
 
 ```sh
-bash tools/prepare-release.sh dist/v0.1.0
+bash tools/prepare-release.sh dist/v0.2.0
 ```
 
 This assembles all six target binaries, `SHA256SUMS`, `cli-release-v1.txt`, both
