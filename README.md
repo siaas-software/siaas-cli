@@ -1,28 +1,72 @@
-> Linux backend native lifecycle evidence: [successful cycle and limits](docs/m2-native-success.md).
-> Public Personal RC4 Linux x64 install/reinstall/uninstall and the corrected
-> JSON receipts have passed focused acceptance with the compiled CLI. Broader
-> M2 still awaits a **second compatible public RC** for RC-to-RC update testing.
-> See [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
-
-> Earlier blocked attempt: [historical first-party M2 report](docs/m2-working-lifecycle.md).
-
 # SIAAS CLI
 
 A standalone, local command-line application for managing SIAAS products.
-This repository is independent of `siaas-personal`. M1 established the CLI
-foundation; M2 adds first-party Personal installation, update and uninstall
-for **Linux x64**, but not generic cross-platform lifecycle management.
-Public immutable Personal RC4 installation and repeated uninstall have passed
-native acceptance on a disposable Linux x64 host. Public RC-to-RC update,
-native GUI and other platforms remain separate, uncompleted acceptance.
 
-End users run one CLI executable. **Node.js, npm, Electron, Docker, Ollama and Go
-are not prerequisites for launching the CLI.** Official Personal installation
-provisions a verified private Node runtime and builds the reviewed application
-as the unprivileged invoking user; it does not launch Electron or Ollama.
-Developers use Go to build and test the CLI.
+## 1. Installation
 
-## Commands
+No administrator privileges or Node.js, npm, Electron, Docker, Ollama or Go installation is required to run the CLI.
+
+### Windows (PowerShell)
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/siaas-software/siaas-cli/releases/download/v0.1.0/install.ps1" -OutFile install-siaas-cli.ps1
+```
+
+Review the script and compare its SHA-256 against the release's SHA256SUMS. Then run under your existing execution policy:
+
+```powershell
+.\install-siaas-cli.ps1
+$env:Path = "$env:LOCALAPPDATA\SIAAS CLI\bin;$env:Path"
+siaas --version
+```
+
+### Linux and macOS (Bash)
+
+```bash
+curl -fsSL https://github.com/siaas-software/siaas-cli/releases/download/v0.1.0/install.sh -o install-siaas-cli.sh
+```
+
+Review the script and compare its SHA-256 against the release's SHA256SUMS. Then run:
+
+```bash
+bash install-siaas-cli.sh
+export PATH="$HOME/.local/bin:$PATH"
+siaas --version
+```
+
+See [official releases](https://github.com/siaas-software/siaas-cli/releases). The bootstrap selects the latest stable CLI release and verifies executable size and SHA-256. The versioned URL pins the script, not the installed CLI version. PATH changes above apply only to the current terminal; add the corresponding directory to your user PATH for future sessions. Artifacts are unsigned; respect OS security policies.
+
+| OS | Architectures | Default executable |
+| --- | --- | --- |
+| Windows | x64, ARM64 | `%LOCALAPPDATA%\SIAAS CLI\bin\siaas.exe` |
+| Linux | x64, ARM64 | `~/.local/bin/siaas` |
+| macOS | Intel, Apple Silicon | `~/.local/bin/siaas` |
+
+## 2. Usage
+
+```text
+siaas --help
+siaas --version
+siaas --version --json
+```
+
+Installing the CLI does not install SIAAS Personal. The published v0.1.0 binary is the M1 foundation. M2 lifecycle functionality described below is implemented on main; do not assume it is available in the published M1 binary. Run the installed CLI's help to discover its capabilities.
+
+## 3. Commands
+
+| Command | Purpose | Availability |
+| --- | --- | --- |
+| `siaas`, `siaas help`, `siaas --help` | Show help | M1 |
+| `siaas --version` | Show version | M1 |
+| `siaas install personal --rc --check` | Verify release without installation | M2 (main) |
+| `siaas update personal --rc --check` | Verify update candidate | M2 (main) |
+| `siaas install personal --rc --yes` | Install Personal | M2 (Linux x64) |
+| `siaas update personal --rc --yes` | Update Personal | M2 (Linux x64; RC-to-RC acceptance pending) |
+| `siaas uninstall personal --rc --yes` | Uninstall Personal | M2 (Linux x64) |
+
+Use `--json` for machine-readable output.
+
+### Main-branch lifecycle details
 
 ```text
 siaas --help
@@ -34,6 +78,8 @@ siaas install personal --check
 siaas install personal --rc --check
 siaas install personal --version 1.1.0-rc.4 --check --json
 siaas install personal --rc --yes --json
+siaas update personal --rc --check
+siaas update personal --rc --yes --json
 siaas uninstall personal --rc --yes --json
 ```
 
@@ -73,7 +119,7 @@ Mutating Personal commands verify the official first-party capability and
 require `--yes` on supported Linux x64 targets. Unsupported legacy releases or
 platforms return exit **3** (`unsupported_capability`); invalid options return
 **2**. `--yes` never bypasses verification. `--purge` is explicitly rejected.
-Other lifecycle commands remain reserved:
+Other lifecycle commands remain reserved or unsupported without the required options:
 
 ```text
 siaas install personal
@@ -104,6 +150,10 @@ the private runtime's persisted checksum after installation. See
 [JSON lifecycle reporting](docs/m2-json-reporting.md) for the tested reporting
 contract and evidence. Public compatible RC-to-RC update acceptance awaits another
 compatible release; RC3 is not an eligible baseline.
+
+## M2 implementation status
+
+Linux x64 native installation, reinstall and uninstall of public Personal RC4 passed focused acceptance. Public RC-to-RC update, native GUI and other platform lifecycle acceptance remain pending in the recorded evidence. See [native lifecycle evidence](docs/m2-native-success.md), [historical blocked attempt](docs/m2-working-lifecycle.md) and [issue #2](https://github.com/siaas-software/siaas-cli/issues/2).
 
 ## Develop and validate locally
 
@@ -168,14 +218,9 @@ and compare the binaries and metadata. The validation report records an actual
 byte-for-byte comparison, binary size and SHA-256. Unsigned repeatability is not
 the same as reproducibility after timestamped platform signing.
 
-## Install the CLI using the bootstrap
+## Advanced bootstrap and offline installation
 
-**There are no published CLI releases as of the 2026-11-08 public-security review.**
-The repository is public, and its page was accessible anonymously. Release asset
-downloads and remote bootstrap remain unverified until publication. No release,
-tag or administrative setting was created or changed for this work. See the
-[current public-security verdict](docs/public-release-security-review.md) and
-[public installation instructions](docs/public-installation.md).
+The [public-security review](docs/public-release-security-review.md) and [original installation instructions](docs/public-installation.md) describe the historical pre-publication review.
 
 For an offline, locally built installation from this checkout:
 
@@ -199,7 +244,7 @@ PowerShell policy, TLS validation, Gatekeeper or antivirus. `--from-dir` /
 corruption, not a malicious local publisher who can change both files. Only use
 artifacts built or obtained from a source you trust.
 
-Once public releases are separately authorized and published using the
+For published releases following the
 [CLI release contract](docs/cli-release-contract.md), a reviewed bootstrap script
 can be run without `--from-dir` / `-FromDir`. It uses the fixed repository's latest
 stable release metadata over HTTPS and derives an immutable versioned artifact
@@ -270,7 +315,7 @@ power loss and recovery from hostile filesystem changes are not guaranteed.
 
 The [native acceptance report](docs/native-acceptance.md) links all six successful
 jobs, exact tested commit, 378 passing test/subtest events and Windows PowerShell
-versions. No real remote Release installation was tested. The follow-up [public-security review](docs/public-release-security-review.md)
+versions. No real remote Release installation was tested in that historical acceptance. The follow-up [public-security review](docs/public-release-security-review.md)
 records the latest six-platform PASS, 450 passing events including both genuine
 standard-user Windows suites, and OS-policy probes.
 Hosted administrator tests alone do not prove standard-user acceptance.
@@ -293,11 +338,10 @@ bootstrap scripts, `RELEASE_NOTES.md` and `GO-LICENSE.txt`. It performs no uploa
 tagging or publication. All six targets now have native offline acceptance. The
 [security review](docs/security-review.md) records fixes, trust assumptions and
 remaining historical release gates. The current [public-security review](docs/public-release-security-review.md)
-is authoritative for the latest candidate and distribution decision. No release
-has been published. See the [post-publication smoke and incident procedure](docs/post-publication-smoke-test.md).
+is authoritative for the latest candidate and distribution decision. This report predates publication. See the [post-publication smoke and incident procedure](docs/post-publication-smoke-test.md).
 
-Current decision: **READY WITH EXPLICIT RISK ACCEPTANCE** for unsigned M1
-distribution. This acceptance has not yet been granted. Internet-marked unsigned
+Historical review decision: **READY WITH EXPLICIT RISK ACCEPTANCE** for unsigned M1
+distribution. Internet-marked unsigned
 PowerShell scripts can be blocked, and macOS Gatekeeper assessment rejected the
-candidates. Public downloads and interactive OS acceptance remain unverified.
-See the current security review before authorizing any release.
+candidates. Public downloads and interactive OS acceptance were unverified at the time of that review.
+See the security review before authorizing any future release.
